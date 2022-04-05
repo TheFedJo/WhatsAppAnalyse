@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -23,10 +22,6 @@ public class Main {
         long end = System.currentTimeMillis();
         System.out.println("Parsing took " + (end - start) + " ms.");
         start = System.currentTimeMillis();
-
-//        for (WhatsAppMessage message : whatsAppMessages) {
-//            System.out.println(message);
-//        }
 
         System.out.println("In totaal zijn er " +whatsAppMessages.size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
         authorList = createAuthorList(whatsAppMessages);
@@ -112,20 +107,29 @@ public class Main {
 
 
 
+
+
+
+        return null;
+
+
+
+
+
     }
 
-    static String allWordsForAuthor (String author, ArrayList<String> messages) {
+    static String allWordsForAuthor (String author, ArrayList<WhatsAppMessage> whatsAppMessages) {
         StringBuilder sb = new StringBuilder();
-        for (String message : messages) {
-            if (message)
+        for (WhatsAppMessage message : whatsAppMessages) {
+            if (message.getAuthor().equals(author))
             sb.append(" ").append(message);
         }
         return sb.toString();
     }
 
-    static Map<String, Integer> wordOccurrenceMap (ArrayList<String> messages) {
+    static Map<String, Integer> wordOccurrenceMap (ArrayList<WhatsAppMessage> whatsAppMessages) {
         StringBuilder sb = new StringBuilder();
-        for (String message : messages) {
+        for (WhatsAppMessage message : whatsAppMessages) {
             sb.append(" ").append(message);
         }
         String totalMessages = sb.toString();
@@ -139,7 +143,7 @@ public class Main {
 
 
 
-        return ne;
+        return null;
 
 
 

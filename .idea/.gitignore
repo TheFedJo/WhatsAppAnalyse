@@ -6,3 +6,6 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+# Dit heb ik lekker verborgen (cope)
+/data/
+/out/
