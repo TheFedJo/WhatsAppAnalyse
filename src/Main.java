@@ -11,7 +11,7 @@ public class Main {
     public static ArrayList<Map.Entry<String, Integer>> sortedAuthorMessageCountEntries = new ArrayList<>();
     public static Map<String, Integer> messagesPerAuthor;
 
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args) {
         long start = System.currentTimeMillis();
 
         File file = new File(String.valueOf(Paths.get("data", "TK31-03-22.txt")));
