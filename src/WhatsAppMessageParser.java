@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-public class Parser {
+public class WhatsAppMessageParser {
     private static final Pattern DATE_TIME_PATTERN = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])-(0?[1-9]|[1][0-2])-[0-9]+\\s+(0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[1-5][0-9])", Pattern.CASE_INSENSITIVE);
     private static final Pattern AUTHOR_NAME_PATTERN = Pattern.compile("([a-záàâãéëèêíïóôõöúçñ ]+( [a-záàâãéëèêíïóôõöúçñ ]+)+)|([a-záàâãéëèêíïóôõöúçñ ]+)|(\\+[0-9]+\\s+\\d\\s+[0-9]+)", Pattern.CASE_INSENSITIVE);
     private BufferedReader bufferedReader;
     private final ArrayList<WhatsAppMessage> messageList;
 
-    public Parser(File file, ArrayList<WhatsAppMessage> messageList) {
+    public WhatsAppMessageParser(File file, ArrayList<WhatsAppMessage> messageList) {
         try {
             this.bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
         } catch (FileNotFoundException e) {
@@ -18,6 +18,7 @@ public class Parser {
             System.exit(1);
         }
         this.messageList = messageList;
+        this.parseFullFile();
     }
 
     private String nextLine() {
@@ -35,31 +36,34 @@ public class Parser {
         for (String line = nextLine(); line != null; line = nextLine()) {
             line = line.replace("\u200E", "");              // Replace ‎ with empty, function is none
             switch (messageType(line)) {
-                case MessageType.STANDARD:
+                case STANDARD:
                     lastMessage = lineToWAMessage(line);
                     break;
-                case MessageType.ADD:
+                case ADD:
                     lastMessage = toADDMessage(line);
                     break;
-                case MessageType.JOIN:
+                case JOIN:
                     lastMessage = toJOINMessage(line);
                     break;
-                case MessageType.KICK:
+                case KICK:
                     lastMessage = toKICKMessage(line);
                     break;
-                case MessageType.EDIT_PHOTO:
+                case EDIT_PHOTO:
                     lastMessage = toEDIT_PHOTOMessage(line);
                     break;
-                case MessageType.EDIT_DESCRIPTION:
+                case CODE_CHANGE:
+                    lastMessage = toCODE_CHANGEMessage(line);
+                    break;
+                case EDIT_DESCRIPTION:
                     lastMessage = toEDIT_DESCRIPTIONMessage(line);
                     break;
-                case MessageType.GENESIS:
+                case GENESIS:
                     lastMessage = toGENESISMessage(line);
                     break;
-                case MessageType.LEAVE:
+                case LEAVE:
                     lastMessage = toLEAVEMessage(line);
                     break;
-                case MessageType.OTHER:
+                case OTHER:
                     if(lastMessage == null) {
                         continue;
                     }
@@ -74,6 +78,10 @@ public class Parser {
 
         }
         System.out.println("Parsing done.");
+    }
+
+    private WhatsAppMessage toCODE_CHANGEMessage(String line) {
+        return new WhatsAppMessage(retrieveDateTime(line), null, MessageType.CODE_CHANGE, line.split(" - ", 2)[1]);
     }
 
     private WhatsAppMessage toEDIT_DESCRIPTIONMessage(String line) {
@@ -150,42 +158,37 @@ public class Parser {
     }
 
     /**
-     *
-     * @param input the line to be parsed
+     * Retrieves the type of message from a particular line (OTHER will be appended to the previous message)
+     * @param line the line to be parsed
      * @return messageType
      */
-    public static MessageType messageType(String input) {
-        if (startsWithDateTime(input)) {
-            String rest = input.split(" - ", 2)[1];
+    public static MessageType messageType(String line) {
+        if (startsWithDateTime(line)) {
+            String rest = line.split(" - ", 2)[1];
             if (rest.contains(": ") && rest.split(": ")[0].length() > 0 && AUTHOR_NAME_PATTERN.matcher(rest.split(": ")[0]).matches()) {
                 return MessageType.STANDARD;
             } else if (rest.contains("end-to-end") || rest.contains(" de groep ")){
                 return MessageType.GENESIS;
-            } else if (input.contains("toegevoegd")){
+            } else if (line.contains("toegevoegd")){
                 return MessageType.ADD;
-            } else if (input.contains("uitnodiging")){
+            } else if (line.contains("uitnodiging")){
                 return MessageType.JOIN;
-            } else if (input.contains("groepsomschrijving")){
+            } else if (line.contains("groepsomschrijving")){
                 return MessageType.EDIT_DESCRIPTION;
-            } else if (input.contains("groepsafbeelding")){
+            } else if (line.contains("groepsafbeelding")){
                 return MessageType.EDIT_PHOTO;
-            } else if (input.contains("verwijderd")){
+            } else if (line.contains("verwijderd")){
                 return MessageType.KICK;
-            } else if (input.contains("verlaten")){
+            } else if (line.contains("verlaten")){
                 return MessageType.LEAVE;
+            } else if (line.contains("beveiligingscode")){
+                return MessageType.CODE_CHANGE;
             } else {
+                System.out.println("Message not recognized, appended to previous:\n"  + line);
                 return MessageType.OTHER;
             }
         } else {
             return MessageType.OTHER;
         }
     }
-
-
-
-
-
-
-
-
 }
