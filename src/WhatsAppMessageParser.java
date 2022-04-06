@@ -3,6 +3,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class WhatsAppMessageParser {
     private static final Pattern DATE_TIME_PATTERN = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])-(0?[1-9]|[1][0-2])-[0-9]+\\s+(0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[1-5][0-9])", Pattern.CASE_INSENSITIVE);
@@ -11,129 +13,84 @@ public class WhatsAppMessageParser {
     private final ArrayList<WhatsAppMessage> messageList;
 
     public WhatsAppMessageParser(File file, ArrayList<WhatsAppMessage> messageList) {
+        this.messageList = messageList;
         try {
             this.bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found");
+            this.parseFullFile();
+        } catch (Exception e) {
+            System.out.println("Something went wrong:");
+            e.printStackTrace();
             System.exit(1);
         }
-        this.messageList = messageList;
-        this.parseFullFile();
     }
 
-    private String nextLine() {
-        try {
-            return bufferedReader.readLine();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
+    public WhatsAppMessageParser() {
+        // for testing purposes
+        this.messageList = new ArrayList<>();
     }
 
-    public void parseFullFile() {
-        int messageCount = 0;
-        WhatsAppMessage lastMessage = null;
+    private String nextLine() throws IOException {
+        return bufferedReader.readLine();
+    }
+
+    public void parseFullFile() throws IOException {
+        MessageType messageType;
+        WhatsAppMessage lastMessage = new WhatsAppMessage(LocalDateTime.now(),null, null,null);
         for (String line = nextLine(); line != null; line = nextLine()) {
-            line = line.replace("\u200E", "");              // Replace ‎ with empty, function is none
-            switch (messageType(line)) {
+            line = line.replace("\u200E", "");              // Replace ‎ with empty, this pops up in some messages and is just annoying to deal with
+            messageType = messageType(line);
+            switch (messageType) {
                 case STANDARD:
                     lastMessage = lineToWAMessage(line);
                     break;
                 case ADD:
-                    lastMessage = toADDMessage(line);
-                    break;
+                case LEAVE:
                 case JOIN:
-                    lastMessage = toJOINMessage(line);
-                    break;
                 case KICK:
-                    lastMessage = toKICKMessage(line);
-                    break;
                 case EDIT_PHOTO:
-                    lastMessage = toEDIT_PHOTOMessage(line);
+                case EDIT_DESCRIPTION:
+                    lastMessage = toDefaultAdminMessage(line, messageType);
                     break;
                 case CODE_CHANGE:
                     lastMessage = toCODE_CHANGEMessage(line);
                     break;
-                case EDIT_DESCRIPTION:
-                    lastMessage = toEDIT_DESCRIPTIONMessage(line);
-                    break;
                 case GENESIS:
                     lastMessage = toGENESISMessage(line);
                     break;
-                case LEAVE:
-                    lastMessage = toLEAVEMessage(line);
-                    break;
-                case OTHER:
-                    if(lastMessage == null) {
-                        continue;
-                    }
+                case NEWLINE:
                     lastMessage.appendMessage(line);
                     continue;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + messageType(line));
+                case OTHER:
+                    System.out.println("Unexpected value, message discarded:\n" + line);
+                    continue;
             }
             messageList.add(lastMessage);
-            messageCount++;
-           // System.out.println("Message " + messageCount + " processed as type: " +lastMessage.getMessageType());
-
         }
         System.out.println("Parsing done.");
     }
 
-    private WhatsAppMessage toCODE_CHANGEMessage(String line) {
+    protected static WhatsAppMessage toDefaultAdminMessage(String line, MessageType type) {  // case EDIT_DESCRIPTION, EDIT_PHOTO, KICK, LEAVE, ADD, JOIN
+        String rest = line.split(" - ", 2)[1];
+        return new WhatsAppMessage(retrieveDateTime(line), extractAuthorFromRest(rest), type, rest);
+    }
+
+    protected static WhatsAppMessage toCODE_CHANGEMessage(String line) {
         return new WhatsAppMessage(retrieveDateTime(line), null, MessageType.CODE_CHANGE, line.split(" - ", 2)[1]);
     }
 
-    private WhatsAppMessage toEDIT_DESCRIPTIONMessage(String line) {
-        String rest = line.split(" - ", 2)[1];
-        return new WhatsAppMessage(retrieveDateTime(line), extractAuthorFromRest(rest), MessageType.EDIT_DESCRIPTION, rest);
-    }
-
-    private WhatsAppMessage toEDIT_PHOTOMessage(String line) {
-        String rest = line.split(" - ", 2)[1];
-        return new WhatsAppMessage(retrieveDateTime(line), extractAuthorFromRest(rest), MessageType.EDIT_PHOTO, rest);
-    }
-
-    private WhatsAppMessage toKICKMessage(String line) {
-        String rest = line.split(" - ", 2)[1];
-        return new WhatsAppMessage(retrieveDateTime(line), extractAuthorFromRest(rest), MessageType.KICK, rest);
-    }
-
-    private static WhatsAppMessage toLEAVEMessage(String line) {
-        String rest = line.split(" - ", 2)[1];
-        return new WhatsAppMessage(retrieveDateTime(line), extractAuthorFromRest(rest), MessageType.LEAVE, rest);
-    }
-
-    private static WhatsAppMessage lineToWAMessage(String line) {
+    protected static WhatsAppMessage lineToWAMessage(String line) {
         String rest = line.split(" - ", 2)[1];
         String author = rest.split(": ")[0];
         String text = rest.split(": ", 2)[1];
         return new WhatsAppMessage(retrieveDateTime(line), author, MessageType.STANDARD, text);
     }
 
-    private static WhatsAppMessage toGENESISMessage(String line) {
+    protected static WhatsAppMessage toGENESISMessage(String line) {
         return new WhatsAppMessage(retrieveDateTime(line), null, MessageType.GENESIS, line.split(" - ", 2)[1]);
-    }
-
-    public static WhatsAppMessage toADDMessage(String line) {
-        String rest = line.split(" - ")[1];
-        return new WhatsAppMessage(retrieveDateTime(line), extractAuthorFromRest(rest), MessageType.ADD, rest);
-    }
-
-    public static WhatsAppMessage toJOINMessage(String line) {
-        String rest = line.split(" - ")[1];
-        String[] splitline = rest.split("\\s+");
-        StringBuilder author = new StringBuilder().append(splitline[0]);
-        for (int i = 1; (!Objects.equals(splitline[i], "neemt")); i++) {
-            author.append(" ").append(splitline[i]);
-        }
-        return new WhatsAppMessage(retrieveDateTime(line), author.toString(), MessageType.JOIN, rest);
-
     }
 
     public static boolean startsWithDateTime(String line) {
         return DATE_TIME_PATTERN.matcher(line.split(" - ")[0]).matches();
-
     }
 
     public static LocalDateTime retrieveDateTime (String line) {
@@ -147,14 +104,9 @@ public class WhatsAppMessageParser {
 
     public static String extractAuthorFromRest(String rest) {
         String[] splitline = rest.split("\\s+");
-        StringBuilder author = new StringBuilder();
-        for (int i = 0; (!Objects.equals(splitline[i], "heeft") && !Objects.equals(splitline[i], "hebt")); i++) {
-            if(i != 0) {
-                author.append(" ");
-            }
-            author.append(splitline[i]);
-        }
-        return author.toString();
+        return IntStream.iterate(1,
+                i -> !Objects.equals(splitline[i], "heeft") && !Objects.equals(splitline[i], "hebt") && !Objects.equals(splitline[i], "neemt"),
+                i -> i + 1).mapToObj(i -> " " + splitline[i]).collect(Collectors.joining("", splitline[0], ""));
     }
 
     /**
@@ -184,11 +136,11 @@ public class WhatsAppMessageParser {
             } else if (line.contains("beveiligingscode")){
                 return MessageType.CODE_CHANGE;
             } else {
-                System.out.println("Message not recognized, appended to previous:\n"  + line);
+                System.out.println("Message not recognized, therefore discarded:\n"  + line);
                 return MessageType.OTHER;
             }
         } else {
-            return MessageType.OTHER;
+            return MessageType.NEWLINE;
         }
     }
 }
