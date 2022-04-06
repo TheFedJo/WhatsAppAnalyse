@@ -11,6 +11,7 @@ public enum MessageType {
     JOIN,
     KICK,
     LEAVE,
+    NEWLINE,
     OTHER,
     STANDARD
 }
