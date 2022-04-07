@@ -11,6 +11,7 @@ public class Main {
     public static Map<String, Integer> messageCountPerAuthor;
     public static Map<String, Map<String, Integer>> wordOccurrencePerAuthor;
     public static ArrayList<Map.Entry<String, Double>> informationPerAuthor;
+    public static ArrayList<WhatsAppMessage> standardWhatsAppMessages;
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
@@ -18,6 +19,7 @@ public class Main {
         File file = new File(String.valueOf(Paths.get("data", "DGM30-03-22.txt")));
         System.out.println("Using file " + file.getName() + " with size: " + file.length() + " bytes.");
         WhatsAppMessageParser whatsAppMessageParser = new WhatsAppMessageParser(file, whatsAppMessages);
+        standardWhatsAppMessages = onlyStandardMessages(whatsAppMessages);
 
         long end = System.currentTimeMillis();
         System.out.println("Parsing took " + (end - start) + " ms.");
@@ -25,7 +27,7 @@ public class Main {
 
         System.out.println("In totaal zijn er " +whatsAppMessages.size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
         authorList = createAuthorList(whatsAppMessages);
-        messageCountPerAuthor =  calcMessageAmountPerAuthor(authorList);
+        messageCountPerAuthor =  calcMessageAmountPerAuthor(authorList, whatsAppMessages);
 
         sortedAuthorMessageCountEntries = sortMethods.mergeSort(new ArrayList(messageCountPerAuthor.entrySet()), new EntryComparator());
         int i = 1;
@@ -47,6 +49,8 @@ public class Main {
             i++;
         }
 
+        wordStats(wordOccurrencePerAuthor);
+
 
 
 
@@ -63,7 +67,12 @@ public class Main {
 
 
         end = System.currentTimeMillis();
-        System.out.println("Information density calculation took " + (end - start) + " ms.");
+        System.out.println("Calculating other stats took " + (end - start) + " ms.");
+    }
+
+    static ArrayList<WhatsAppMessage> onlyStandardMessages(ArrayList<WhatsAppMessage> messages) {
+        messages.removeIf(message -> message.getMessageType() != MessageType.STANDARD);
+        return messages;
     }
 
     static ArrayList<String> createAuthorList(ArrayList<WhatsAppMessage> whatsAppMessages) {
@@ -88,16 +97,36 @@ public class Main {
             }
         }
         Map<String, ArrayList<Map.Entry<String, Integer>>> favoriteWordsPerAuthor = new HashMap<>();
-        //for ()
-
+        for (Map.Entry<String, Map<String, Integer>> authorWordEntry : authorWordMap.entrySet()) {
+            ArrayList<Map.Entry<String, Integer>> sortedFavoriteWords = sortMethods.mergeSort(new ArrayList<>(authorWordEntry.getValue().entrySet()), new EntryComparator());
+            favoriteWordsPerAuthor.put(authorWordEntry.getKey(), new ArrayList<>(sortedFavoriteWords.subList(0, 10)));
+        }
+        Map<String, Integer> wordCountPerAuthor = new HashMap<>();
+        for (Map.Entry<String, Map<String, Integer>> authorWordEntry : authorWordMap.entrySet()) {
+            int countForCurrentAuthor = 0;
+            for(int wordCount : authorWordEntry.getValue().values()) {
+                countForCurrentAuthor += wordCount;
+            }
+            wordCountPerAuthor.put(authorWordEntry.getKey(), countForCurrentAuthor);
+        }
+        ArrayList<Map.Entry<String, Integer>> totalWordCountPerAuthor = sortMethods.mergeSort(new ArrayList<>(wordCountPerAuthor.entrySet()), new EntryComparator());
+        int i;
+        for (Map.Entry<String, Integer> entry : totalWordCountPerAuthor) {
+            System.out.println("\n" + entry.getKey() + " heeft " + entry.getValue() + " woorden uitgekraamd.\nDit zijn de favorieten:");
+            i = 1;
+            for (Map.Entry<String, Integer> wordPlusCount : favoriteWordsPerAuthor.get(entry.getKey())) {
+                System.out.println(i + ". " + wordPlusCount.getKey() + ", " + wordPlusCount.getValue() + " keer gezegd.");
+                i++;
+            }
+        }
     }
 
-    static Map<String, Integer> calcMessageAmountPerAuthor(ArrayList<String> authorList) {
+    static Map<String, Integer> calcMessageAmountPerAuthor(ArrayList<String> authorList, ArrayList<WhatsAppMessage> messages) {
         Map<String, Integer> messageCount = new HashMap<>();
         for (String author : authorList) {
             messageCount.put(author, 0);
         }
-        for (WhatsAppMessage whatsAppMessage : whatsAppMessages) {
+        for (WhatsAppMessage whatsAppMessage : messages) {
             if (whatsAppMessage.getMessageType() == MessageType.STANDARD) {
                 messageCount.replace(whatsAppMessage.getAuthor(), messageCount.get(whatsAppMessage.getAuthor()) + 1);
             }
@@ -156,8 +185,6 @@ public class Main {
     }
 
     public static double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
-
         BigDecimal bd = BigDecimal.valueOf(value);
         bd = bd.setScale(places, RoundingMode.HALF_UP);
         return bd.doubleValue();
@@ -165,19 +192,11 @@ public class Main {
 }
 
 class EntryComparator implements Comparator<Map.Entry<String, Number>>{
-
     @Override
     public int compare(Map.Entry<String, Number> o1, Map.Entry<String, Number> o2) {
-        int result = (int) ((o1.getValue().floatValue() - o2.getValue().floatValue()) * 1000);
-        if (result > 0) {
-            System.out.println(o1.getValue() + " is larger than " + o2.getValue());
-        } else {
-            System.out.println(o2.getValue() + " is larger than " + o1.getValue());
-        }
-        return result;
+        return (int) ((o1.getValue().floatValue() - o2.getValue().floatValue()) * 1000);
     }
 }
-
 
 class sortMethods {
      static ArrayList mergeSort(ArrayList elements, Comparator comparator) {
