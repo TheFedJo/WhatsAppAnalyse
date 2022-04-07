@@ -49,6 +49,9 @@ public class WhatsAppMessageParser {
                 case KICK:
                 case EDIT_PHOTO:
                 case EDIT_DESCRIPTION:
+                case EDIT_NAME:
+                case START_CALL:
+                case EDIT_SETTINGS:
                     lastMessage = toDefaultAdminMessage(line, messageType);
                     break;
                 case CODE_CHANGE:
@@ -135,8 +138,13 @@ public class WhatsAppMessageParser {
                 return MessageType.LEAVE;
             } else if (line.contains("beveiligingscode")){
                 return MessageType.CODE_CHANGE;
+            } else if (line.contains("oproep")) {
+                return MessageType.START_CALL;
+            } else if (line.contains("onderwerp")) {
+                return MessageType.EDIT_NAME;
+            } else if (line.contains("groepsinstellingen")) {
+                return MessageType.EDIT_SETTINGS;
             } else {
-                System.out.println("Message not recognized, therefore discarded:\n"  + line);
                 return MessageType.OTHER;
             }
         } else {
