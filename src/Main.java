@@ -16,7 +16,7 @@ public class Main {
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
 
-        File file = new File(String.valueOf(Paths.get("data", "DGM30-03-22.txt")));
+        File file = new File(String.valueOf(Paths.get("data", "TK31-03-22.txt")));
         System.out.println("Using file " + file.getName() + " with size: " + file.length() + " bytes.");
         WhatsAppMessageParser whatsAppMessageParser = new WhatsAppMessageParser(file, whatsAppMessages);
         standardWhatsAppMessages = onlyStandardMessages(whatsAppMessages);
@@ -99,7 +99,7 @@ public class Main {
         Map<String, ArrayList<Map.Entry<String, Integer>>> favoriteWordsPerAuthor = new HashMap<>();
         for (Map.Entry<String, Map<String, Integer>> authorWordEntry : authorWordMap.entrySet()) {
             ArrayList<Map.Entry<String, Integer>> sortedFavoriteWords = sortMethods.mergeSort(new ArrayList<>(authorWordEntry.getValue().entrySet()), new EntryComparator());
-            favoriteWordsPerAuthor.put(authorWordEntry.getKey(), new ArrayList<>(sortedFavoriteWords.subList(0, 10)));
+            favoriteWordsPerAuthor.put(authorWordEntry.getKey(), new ArrayList<>(sortedFavoriteWords.subList(0, Math.min(10, sortedFavoriteWords.size()))));
         }
         Map<String, Integer> wordCountPerAuthor = new HashMap<>();
         for (Map.Entry<String, Map<String, Integer>> authorWordEntry : authorWordMap.entrySet()) {
