@@ -23,6 +23,5 @@ aanpassen voor je eigen exports natuurlijk.
 #
 ### TO_DO
 * Javadoc en/of comments
-* Informatiedichtheid berekenen (Shannon)
 * Berichten per tijdspanne (per auteur)
-* Main class splitsen?
+* Grafieken? Iemand suggesties?

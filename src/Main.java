@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Paths;
@@ -12,62 +13,54 @@ public class Main {
     public static Map<String, Map<String, Integer>> wordOccurrencePerAuthor;
     public static ArrayList<Map.Entry<String, Double>> informationPerAuthor;
     public static ArrayList<WhatsAppMessage> standardWhatsAppMessages;
+    private static InputOutput io;
+    private static File inputFile;
+    private static final Timer timer = new Timer();
 
     public static void main(String[] args) {
-        long start = System.currentTimeMillis();
+        timer.start();
 
-        File file = new File(String.valueOf(Paths.get("data", "TK31-03-22.txt")));
-        System.out.println("Using file " + file.getName() + " with size: " + file.length() + " bytes.");
-        WhatsAppMessageParser whatsAppMessageParser = new WhatsAppMessageParser(file, whatsAppMessages);
+        try {
+            inputFile = new File(String.valueOf(Paths.get("data", "in", "trust-circle26-04-22.txt")));
+            System.out.println("Using file " + inputFile.getName() + " with size: " + inputFile.length() + " bytes.");
+            io = new InputOutput(inputFile);
+            io.setFileName("default");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        new WhatsAppMessageParser(inputFile, whatsAppMessages);
         standardWhatsAppMessages = onlyStandardMessages(whatsAppMessages);
 
-        long end = System.currentTimeMillis();
-        System.out.println("Parsing took " + (end - start) + " ms.");
-        start = System.currentTimeMillis();
+        timer.end("Parsing");
+        timer.start();
 
-        System.out.println("In totaal zijn er " +whatsAppMessages.size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
+        io.output("In totaal zijn er " +whatsAppMessages.size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
         authorList = createAuthorList(whatsAppMessages);
         messageCountPerAuthor =  calcMessageAmountPerAuthor(authorList, whatsAppMessages);
 
         sortedAuthorMessageCountEntries = sortMethods.mergeSort(new ArrayList(messageCountPerAuthor.entrySet()), new EntryComparator());
         int i = 1;
         for (Map.Entry<String, Integer> entry : sortedAuthorMessageCountEntries) {
-            System.out.println(i + ". " + entry.getKey() + " met " + entry.getValue() + " berichten.");
+            io.output(i + ". " + entry.getKey() + " met " + entry.getValue() + " berichten.");
             i++;
         }
 
-        end = System.currentTimeMillis();
-        System.out.println("Counting took " + (end - start) + " ms.");
-        start = System.currentTimeMillis();
-
+        timer.end("Counting");
+        timer.start();
 
         wordOccurrencePerAuthor = wordOccurrenceMapPerAuthor(whatsAppMessages, authorList);
-        informationPerAuthor = sortMethods.mergeSort(new ArrayList<>(informationPerAuthor(wordOccurrencePerAuthor).entrySet()), new EntryComparator());
-        i = 1;
-        for (Map.Entry<String, Double> entry : informationPerAuthor) {
-            System.out.println(i + ". " + entry.getKey() + " met " + round(entry.getValue(), 2) + " bits verschillende informatie.");
-            i++;
-        }
+//        informationPerAuthor = sortMethods.mergeSort(new ArrayList<>(informationPerAuthor(wordOccurrencePerAuthor).entrySet()), new EntryComparator());
+//        i = 1;
+//        for (Map.Entry<String, Double> entry : informationPerAuthor) {
+//            io.output(i + ". " + entry.getKey() + " met " + round(entry.getValue(), 2) + " bits verschillende informatie.");
+//            i++;
+//        }
 
-        wordStats(wordOccurrencePerAuthor);
+        WordStats.wordStats(wordOccurrencePerAuthor, io);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        end = System.currentTimeMillis();
-        System.out.println("Calculating other stats took " + (end - start) + " ms.");
+        timer.end("Calculating other stats");
+        System.out.println("Now enter your query");
     }
 
     static ArrayList<WhatsAppMessage> onlyStandardMessages(ArrayList<WhatsAppMessage> messages) {
@@ -83,42 +76,6 @@ public class Main {
             }
         }
         return authors;
-    }
-
-    static void wordStats(Map<String, Map<String, Integer>> authorWordMap) {
-        Map<String, Integer> generalWordMap = new HashMap<>();
-        for (Map<String, Integer> wordMap : authorWordMap.values()) {
-            for (Map.Entry<String, Integer> entry : wordMap.entrySet()) {
-                if (!generalWordMap.containsKey(entry.getKey())) {
-                    generalWordMap.put(entry.getKey(), entry.getValue());
-                } else {
-                    generalWordMap.replace(entry.getKey(), generalWordMap.get(entry.getKey()) + entry.getValue());
-                }
-            }
-        }
-        Map<String, ArrayList<Map.Entry<String, Integer>>> favoriteWordsPerAuthor = new HashMap<>();
-        for (Map.Entry<String, Map<String, Integer>> authorWordEntry : authorWordMap.entrySet()) {
-            ArrayList<Map.Entry<String, Integer>> sortedFavoriteWords = sortMethods.mergeSort(new ArrayList<>(authorWordEntry.getValue().entrySet()), new EntryComparator());
-            favoriteWordsPerAuthor.put(authorWordEntry.getKey(), new ArrayList<>(sortedFavoriteWords.subList(0, Math.min(10, sortedFavoriteWords.size()))));
-        }
-        Map<String, Integer> wordCountPerAuthor = new HashMap<>();
-        for (Map.Entry<String, Map<String, Integer>> authorWordEntry : authorWordMap.entrySet()) {
-            int countForCurrentAuthor = 0;
-            for(int wordCount : authorWordEntry.getValue().values()) {
-                countForCurrentAuthor += wordCount;
-            }
-            wordCountPerAuthor.put(authorWordEntry.getKey(), countForCurrentAuthor);
-        }
-        ArrayList<Map.Entry<String, Integer>> totalWordCountPerAuthor = sortMethods.mergeSort(new ArrayList<>(wordCountPerAuthor.entrySet()), new EntryComparator());
-        int i;
-        for (Map.Entry<String, Integer> entry : totalWordCountPerAuthor) {
-            System.out.println("\n" + entry.getKey() + " heeft " + entry.getValue() + " woorden uitgekraamd.\nDit zijn de favorieten:");
-            i = 1;
-            for (Map.Entry<String, Integer> wordPlusCount : favoriteWordsPerAuthor.get(entry.getKey())) {
-                System.out.println(i + ". " + wordPlusCount.getKey() + ", " + wordPlusCount.getValue() + " keer gezegd.");
-                i++;
-            }
-        }
     }
 
     static Map<String, Integer> calcMessageAmountPerAuthor(ArrayList<String> authorList, ArrayList<WhatsAppMessage> messages) {
@@ -223,5 +180,18 @@ class sortMethods {
             result.addAll(firstList.subList(fi, firstList.size()));
         }
         return result;
+    }
+}
+
+class Timer {
+    private long startTime;
+
+    public void start() {
+        startTime = System.currentTimeMillis();
+    }
+
+    public void end(String activity) {
+        long endTime = System.currentTimeMillis();
+        System.out.println(activity + " took " + (endTime - startTime) + " ms.");
     }
 }

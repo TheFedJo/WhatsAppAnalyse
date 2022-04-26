@@ -38,7 +38,7 @@ public class WhatsAppMessageParser {
         WhatsAppMessage lastMessage = new WhatsAppMessage(LocalDateTime.now(),null, null,null);
         for (String line = nextLine(); line != null; line = nextLine()) {
             line = line.replace("\u200E", "");              // Replace ‎ with empty, this pops up in some messages and is just annoying to deal with
-            messageType = messageType(line);
+            messageType = getMessageType(line);
             switch (messageType) {
                 case STANDARD:
                     lastMessage = lineToWAMessage(line);
@@ -54,11 +54,10 @@ public class WhatsAppMessageParser {
                 case EDIT_SETTINGS:
                     lastMessage = toDefaultAdminMessage(line, messageType);
                     break;
+                case ADMIN_CHANGE:
                 case CODE_CHANGE:
-                    lastMessage = toCODE_CHANGEMessage(line);
-                    break;
                 case GENESIS:
-                    lastMessage = toGENESISMessage(line);
+                    lastMessage = toDefaultAuthorlessMessage(line, messageType);
                     break;
                 case NEWLINE:
                     lastMessage.appendMessage(line);
@@ -92,6 +91,10 @@ public class WhatsAppMessageParser {
         return new WhatsAppMessage(retrieveDateTime(line), null, MessageType.GENESIS, line.split(" - ", 2)[1]);
     }
 
+    protected static WhatsAppMessage toDefaultAuthorlessMessage(String line, MessageType type) {
+        return new WhatsAppMessage(retrieveDateTime(line), null, type, line.split(" - ", 2)[1]);
+    }
+
     public static boolean startsWithDateTime(String line) {
         return DATE_TIME_PATTERN.matcher(line.split(" - ")[0]).matches();
     }
@@ -108,7 +111,8 @@ public class WhatsAppMessageParser {
     public static String extractAuthorFromRest(String rest) {
         String[] splitline = rest.split("\\s+");
         return IntStream.iterate(1,
-                i -> !Objects.equals(splitline[i], "heeft") && !Objects.equals(splitline[i], "hebt") && !Objects.equals(splitline[i], "neemt"),
+                i -> !Objects.equals(splitline[i], "heeft") && !Objects.equals(splitline[i], "hebt") &&
+                     !Objects.equals(splitline[i], "neemt") && !Objects.equals(splitline[i], "bent"),
                 i -> i + 1).mapToObj(i -> " " + splitline[i]).collect(Collectors.joining("", splitline[0], ""));
     }
 
@@ -117,22 +121,22 @@ public class WhatsAppMessageParser {
      * @param line the line to be parsed
      * @return messageType
      */
-    public static MessageType messageType(String line) {
+    public static MessageType getMessageType(String line) {
         if (startsWithDateTime(line)) {
             String rest = line.split(" - ", 2)[1];
             if (rest.contains(": ") && rest.split(": ")[0].length() > 0 && AUTHOR_NAME_PATTERN.matcher(rest.split(": ")[0]).matches()) {
                 return MessageType.STANDARD;
             } else if (rest.contains("end-to-end") || rest.contains(" de groep ")){
                 return MessageType.GENESIS;
-            } else if (line.contains("toegevoegd")){
+            } else if (rest.contains("toegevoegd")){
                 return MessageType.ADD;
-            } else if (line.contains("uitnodiging")){
+            } else if (rest.contains("uitnodiging")){
                 return MessageType.JOIN;
-            } else if (line.contains("groepsomschrijving")){
+            } else if (rest.contains("groepsomschrijving")){
                 return MessageType.EDIT_DESCRIPTION;
-            } else if (line.contains("groepsafbeelding")){
+            } else if (rest.contains("groepsafbeelding")){
                 return MessageType.EDIT_PHOTO;
-            } else if (line.contains("verwijderd")){
+            } else if (rest.contains("verwijderd")){
                 return MessageType.KICK;
             } else if (line.contains("verlaten")){
                 return MessageType.LEAVE;
@@ -144,6 +148,8 @@ public class WhatsAppMessageParser {
                 return MessageType.EDIT_NAME;
             } else if (line.contains("groepsinstellingen")) {
                 return MessageType.EDIT_SETTINGS;
+            } else if (line.contains("beheerder")) {
+                return MessageType.ADMIN_CHANGE;
             } else {
                 return MessageType.OTHER;
             }

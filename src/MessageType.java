@@ -5,6 +5,7 @@
 public enum MessageType {
     ADD,
     CODE_CHANGE,
+    ADMIN_CHANGE,
     EDIT_DESCRIPTION,
     EDIT_NAME,
     EDIT_PHOTO,
