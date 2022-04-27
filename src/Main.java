@@ -18,7 +18,7 @@ public class Main {
     public static void main(String[] args) {
         timer.start();
 
-        File inputFile = new File(String.valueOf(Paths.get("data", "in", "trust-circle26-04-22.txt")));
+        File inputFile = new File(String.valueOf(Paths.get("data", "chats", "trust-circle26-04-22.txt")));
         System.out.println("Using file " + inputFile.getName() + " with size: " + inputFile.length() + " bytes.");
         io = new InputOutput(inputFile);
         io.setFileName("default");
@@ -26,8 +26,7 @@ public class Main {
         new WhatsAppMessageParser(inputFile, whatsAppMessages);
         standardWhatsAppMessages = onlyStandardMessages(whatsAppMessages);
 
-        timer.end("Parsing");
-        timer.start();
+        timer.stopStart("Parsing");
 
         io.output("In totaal zijn er " +whatsAppMessages.size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
         authorList = createAuthorList(whatsAppMessages);
@@ -40,8 +39,7 @@ public class Main {
             i++;
         }
 
-        timer.end("Counting");
-        timer.start();
+        timer.stopStart("Counting");
 
         wordOccurrencePerAuthor = wordOccurrenceMapPerAuthor(whatsAppMessages, authorList);
         informationPerAuthor = SortMethods.mergeSort(new ArrayList<>(informationPerAuthor(wordOccurrencePerAuthor).entrySet()), new EntryComparator());
@@ -53,7 +51,7 @@ public class Main {
 
         WordStats.wordStats(wordOccurrencePerAuthor, io);
 
-        timer.end("Calculating other stats");
+        timer.stop("Calculating other stats");
         System.out.println("Now enter your query");
     }
 
@@ -184,8 +182,13 @@ class Timer {
         startTime = System.currentTimeMillis();
     }
 
-    public void end(String activity) {
+    public void stop(String activity) {
         long endTime = System.currentTimeMillis();
         System.out.println(activity + " took " + (endTime - startTime) + " ms.");
+    }
+
+    public void stopStart(String activity) {
+        stop(activity);
+        start();
     }
 }
