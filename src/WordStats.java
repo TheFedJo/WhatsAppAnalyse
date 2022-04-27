@@ -3,8 +3,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WordStats {
+    private final InputOutput io;
 
-    static void wordStats(Map<String, Map<String, Integer>> authorWordMap, InputOutput io) {
+    public WordStats(InputOutput io) {
+        this.io = io;
+    }
+
+    void allStats(Map<String, Map<String, Integer>> authorWordMap) {
         Map<String, Integer> generalWordMap = new HashMap<>();
         for (Map<String, Integer> wordMap : authorWordMap.values()) {
             for (Map.Entry<String, Integer> entry : wordMap.entrySet()) {
@@ -39,5 +44,7 @@ public class WordStats {
             }
         }
     }
+
+
 
 }

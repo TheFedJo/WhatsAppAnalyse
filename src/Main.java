@@ -14,6 +14,7 @@ public class Main {
     public static ArrayList<WhatsAppMessage> standardWhatsAppMessages;
     private static InputOutput io;
     private static final Timer timer = new Timer();
+    private static WordStats wordStats;
 
     public static void main(String[] args) {
         timer.start();
@@ -49,7 +50,9 @@ public class Main {
             i++;
         }
 
-        WordStats.wordStats(wordOccurrencePerAuthor, io);
+        wordStats = new WordStats(io);
+
+        wordStats.allStats(wordOccurrencePerAuthor);
 
         timer.stop("Calculating other stats");
         System.out.println("Now enter your query");
