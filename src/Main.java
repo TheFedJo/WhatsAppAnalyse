@@ -11,25 +11,22 @@ public class Main {
     public static Map<String, Integer> messageCountPerAuthor;
     public static Map<String, Map<String, Integer>> wordOccurrencePerAuthor;
     public static ArrayList<Map.Entry<String, Double>> informationPerAuthor;
-    public static ArrayList<WhatsAppMessage> standardWhatsAppMessages;
-    private static InputOutput io;
     private static final Timer timer = new Timer();
-    private static WordStats wordStats;
 
     public static void main(String[] args) {
         timer.start();
 
-        File inputFile = new File(String.valueOf(Paths.get("data", "chats", "trust-circle26-04-22.txt")));
+        File inputFile = new File(String.valueOf(Paths.get("data", "chats", "DGM30-03-22.txt")));
         System.out.println("Using file " + inputFile.getName() + " with size: " + inputFile.length() + " bytes.");
-        io = new InputOutput(inputFile);
+        InputOutput io = new InputOutput(inputFile);
         io.setFileName("default");
 
-        new WhatsAppMessageParser(inputFile, whatsAppMessages);
-        standardWhatsAppMessages = onlyStandardMessages(whatsAppMessages);
+        new WhatsAppMessageParser(inputFile, whatsAppMessages).parseFullFile();
+        filterToStandardMessagesOnly(whatsAppMessages);
 
         timer.stopStart("Parsing");
 
-        io.output("In totaal zijn er " +whatsAppMessages.size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
+        io.output("In totaal zijn er " + whatsAppMessages.size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
         authorList = createAuthorList(whatsAppMessages);
         messageCountPerAuthor =  calcMessageAmountPerAuthor(authorList, whatsAppMessages);
 
@@ -45,22 +42,20 @@ public class Main {
         wordOccurrencePerAuthor = wordOccurrenceMapPerAuthor(whatsAppMessages, authorList);
         informationPerAuthor = SortMethods.mergeSort(new ArrayList<>(informationPerAuthor(wordOccurrencePerAuthor).entrySet()), new EntryComparator());
         i = 1;
+        io.output("\n");
         for (Map.Entry<String, Double> entry : informationPerAuthor) {
             io.output(i + ". " + entry.getKey() + " met " + round(entry.getValue(), 2) + " bits verschillende informatie.");
             i++;
         }
 
-        wordStats = new WordStats(io);
-
-        wordStats.allStats(wordOccurrencePerAuthor);
+        new WordStats(io).allStats(wordOccurrencePerAuthor);
 
         timer.stop("Calculating other stats");
         System.out.println("Now enter your query");
     }
 
-    static ArrayList<WhatsAppMessage> onlyStandardMessages(ArrayList<WhatsAppMessage> messages) {
+    static void filterToStandardMessagesOnly(ArrayList<WhatsAppMessage> messages) {
         messages.removeIf(message -> message.getMessageType() != MessageType.STANDARD);
-        return messages;
     }
 
     static ArrayList<String> createAuthorList(ArrayList<WhatsAppMessage> whatsAppMessages) {

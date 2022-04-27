@@ -9,7 +9,13 @@ public class WordStats {
         this.io = io;
     }
 
-    void allStats(Map<String, Map<String, Integer>> authorWordMap) {
+    public void allStats(Map<String, Map<String, Integer>> authorWordMap) {
+        generalWordTopTen(authorWordMap);
+
+        wordCountPerAuthorAndFavoriteWords(authorWordMap);
+    }
+
+    private void generalWordTopTen(Map<String, Map<String, Integer>> authorWordMap) {
         Map<String, Integer> generalWordMap = new HashMap<>();
         for (Map<String, Integer> wordMap : authorWordMap.values()) {
             for (Map.Entry<String, Integer> entry : wordMap.entrySet()) {
@@ -20,6 +26,9 @@ public class WordStats {
                 }
             }
         }
+    }
+
+    private void wordCountPerAuthorAndFavoriteWords(Map<String, Map<String, Integer>> authorWordMap) {
         Map<String, ArrayList<Map.Entry<String, Integer>>> favoriteWordsPerAuthor = new HashMap<>();
         for (Map.Entry<String, Map<String, Integer>> authorWordEntry : authorWordMap.entrySet()) {
             ArrayList<Map.Entry<String, Integer>> sortedFavoriteWords = SortMethods.mergeSort(new ArrayList<>(authorWordEntry.getValue().entrySet()), new EntryComparator());
@@ -44,7 +53,4 @@ public class WordStats {
             }
         }
     }
-
-
-
 }

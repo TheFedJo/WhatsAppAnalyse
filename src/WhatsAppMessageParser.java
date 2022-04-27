@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 public class WhatsAppMessageParser {
     private static final Pattern DATE_TIME_PATTERN = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])-(0?[1-9]|[1][0-2])-[0-9]+\\s+(0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[1-5][0-9])", Pattern.CASE_INSENSITIVE);
     private static final Pattern AUTHOR_NAME_PATTERN = Pattern.compile("([a-záàâãéëèêíïóôõöúçñ ]+( [a-záàâãéëèêíïóôõöúçñ ]+)+)|([a-záàâãéëèêíïóôõöúçñ ]+)|(\\+[0-9]+\\s+\\d\\s+[0-9]+)", Pattern.CASE_INSENSITIVE);
+    private InputOutput io;
     private BufferedReader bufferedReader;
     private final ArrayList<WhatsAppMessage> messageList;
 
@@ -16,12 +17,18 @@ public class WhatsAppMessageParser {
         this.messageList = messageList;
         try {
             this.bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-            this.parseFullFile();
         } catch (Exception e) {
             System.out.println("Something went wrong:");
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    public WhatsAppMessageParser(File file, ArrayList<WhatsAppMessage> messageList, InputOutput io) {
+        // for debugging
+        this(file, messageList);
+        this.io = io;
+        
     }
 
     public WhatsAppMessageParser() {
@@ -33,40 +40,46 @@ public class WhatsAppMessageParser {
         return bufferedReader.readLine();
     }
 
-    public void parseFullFile() throws IOException {
+    public void parseFullFile() {
         MessageType messageType;
         WhatsAppMessage lastMessage = new WhatsAppMessage(LocalDateTime.now(),null, null,null);
-        for (String line = nextLine(); line != null; line = nextLine()) {
-            line = line.replace("\u200E", "");              // Replace ‎ with empty, this pops up in some messages and is just annoying to deal with
-            messageType = getMessageType(line);
-            switch (messageType) {
-                case STANDARD:
-                    lastMessage = lineToWAMessage(line);
-                    break;
-                case ADD:
-                case LEAVE:
-                case JOIN:
-                case KICK:
-                case EDIT_PHOTO:
-                case EDIT_DESCRIPTION:
-                case EDIT_NAME:
-                case START_CALL:
-                case EDIT_SETTINGS:
-                    lastMessage = toDefaultAdminMessage(line, messageType);
-                    break;
-                case ADMIN_CHANGE:
-                case CODE_CHANGE:
-                case GENESIS:
-                    lastMessage = toDefaultAuthorlessMessage(line, messageType);
-                    break;
-                case NEWLINE:
-                    lastMessage.appendMessage(line);
-                    continue;
-                case OTHER:
-                    System.out.println("Unexpected value, message discarded:\n" + line);
-                    continue;
+        try {
+            for (String line = nextLine(); line != null; line = nextLine()) {
+                line = line.replace("\u200E", "");              // Replace ‎ with empty, this pops up in some messages and is just annoying to deal with
+                messageType = getMessageType(line);
+                switch (messageType) {
+                    case STANDARD:
+                        lastMessage = lineToWAMessage(line);
+                        break;
+                    case ADD:
+                    case LEAVE:
+                    case JOIN:
+                    case KICK:
+                    case EDIT_PHOTO:
+                    case EDIT_DESCRIPTION:
+                    case EDIT_NAME:
+                    case START_CALL:
+                    case EDIT_SETTINGS:
+                        lastMessage = toDefaultAdminMessage(line, messageType);
+                        break;
+                    case ADMIN_CHANGE:
+                    case CODE_CHANGE:
+                    case GENESIS:
+                        lastMessage = toDefaultAuthorlessMessage(line, messageType);
+                        break;
+                    case NEWLINE:
+                        lastMessage.appendMessage(line);
+                        continue;
+                    case OTHER:
+                        System.out.println("Unexpected value, message discarded:\n" + line);
+                        continue;
+                }
+                messageList.add(lastMessage);
+            //    io.output(messageType + ", " + lastMessage.getAuthor() + "\n" + lastMessage); // debug line
             }
-            messageList.add(lastMessage);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
         }
         System.out.println("Parsing done.");
     }
@@ -76,19 +89,11 @@ public class WhatsAppMessageParser {
         return new WhatsAppMessage(retrieveDateTime(line), extractAuthorFromRest(rest), type, rest);
     }
 
-    protected static WhatsAppMessage toCODE_CHANGEMessage(String line) {
-        return new WhatsAppMessage(retrieveDateTime(line), null, MessageType.CODE_CHANGE, line.split(" - ", 2)[1]);
-    }
-
     protected static WhatsAppMessage lineToWAMessage(String line) {
         String rest = line.split(" - ", 2)[1];
         String author = rest.split(": ")[0];
         String text = rest.split(": ", 2)[1];
         return new WhatsAppMessage(retrieveDateTime(line), author, MessageType.STANDARD, text);
-    }
-
-    protected static WhatsAppMessage toGENESISMessage(String line) {
-        return new WhatsAppMessage(retrieveDateTime(line), null, MessageType.GENESIS, line.split(" - ", 2)[1]);
     }
 
     protected static WhatsAppMessage toDefaultAuthorlessMessage(String line, MessageType type) {
