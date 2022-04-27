@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Paths;
@@ -14,21 +13,16 @@ public class Main {
     public static ArrayList<Map.Entry<String, Double>> informationPerAuthor;
     public static ArrayList<WhatsAppMessage> standardWhatsAppMessages;
     private static InputOutput io;
-    private static File inputFile;
     private static final Timer timer = new Timer();
 
     public static void main(String[] args) {
         timer.start();
 
-        try {
-            inputFile = new File(String.valueOf(Paths.get("data", "in", "trust-circle26-04-22.txt")));
-            System.out.println("Using file " + inputFile.getName() + " with size: " + inputFile.length() + " bytes.");
-            io = new InputOutput(inputFile);
-            io.setFileName("default");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        File inputFile = new File(String.valueOf(Paths.get("data", "in", "trust-circle26-04-22.txt")));
+        System.out.println("Using file " + inputFile.getName() + " with size: " + inputFile.length() + " bytes.");
+        io = new InputOutput(inputFile);
+        io.setFileName("default");
+
         new WhatsAppMessageParser(inputFile, whatsAppMessages);
         standardWhatsAppMessages = onlyStandardMessages(whatsAppMessages);
 
@@ -39,7 +33,7 @@ public class Main {
         authorList = createAuthorList(whatsAppMessages);
         messageCountPerAuthor =  calcMessageAmountPerAuthor(authorList, whatsAppMessages);
 
-        sortedAuthorMessageCountEntries = sortMethods.mergeSort(new ArrayList(messageCountPerAuthor.entrySet()), new EntryComparator());
+        sortedAuthorMessageCountEntries = SortMethods.mergeSort(new ArrayList(messageCountPerAuthor.entrySet()), new EntryComparator());
         int i = 1;
         for (Map.Entry<String, Integer> entry : sortedAuthorMessageCountEntries) {
             io.output(i + ". " + entry.getKey() + " met " + entry.getValue() + " berichten.");
@@ -50,12 +44,12 @@ public class Main {
         timer.start();
 
         wordOccurrencePerAuthor = wordOccurrenceMapPerAuthor(whatsAppMessages, authorList);
-//        informationPerAuthor = sortMethods.mergeSort(new ArrayList<>(informationPerAuthor(wordOccurrencePerAuthor).entrySet()), new EntryComparator());
-//        i = 1;
-//        for (Map.Entry<String, Double> entry : informationPerAuthor) {
-//            io.output(i + ". " + entry.getKey() + " met " + round(entry.getValue(), 2) + " bits verschillende informatie.");
-//            i++;
-//        }
+        informationPerAuthor = SortMethods.mergeSort(new ArrayList<>(informationPerAuthor(wordOccurrencePerAuthor).entrySet()), new EntryComparator());
+        i = 1;
+        for (Map.Entry<String, Double> entry : informationPerAuthor) {
+            io.output(i + ". " + entry.getKey() + " met " + round(entry.getValue(), 2) + " bits verschillende informatie.");
+            i++;
+        }
 
         WordStats.wordStats(wordOccurrencePerAuthor, io);
 
@@ -155,16 +149,16 @@ class EntryComparator implements Comparator<Map.Entry<String, Number>>{
     }
 }
 
-class sortMethods {
+class SortMethods {
      static ArrayList mergeSort(ArrayList elements, Comparator comparator) {
         if (elements.size() <= 1) {
             return elements;
         }
-        ArrayList firstList = mergeSort( new ArrayList(elements.subList(0, elements.size() / 2)), comparator);
-        ArrayList secondList = mergeSort( new ArrayList(elements.subList(elements.size() / 2, elements.size())), comparator);
+        ArrayList firstList = mergeSort(new ArrayList(elements.subList(0, elements.size() / 2)), comparator);
+        ArrayList secondList = mergeSort(new ArrayList(elements.subList(elements.size() / 2, elements.size())), comparator);
         int fi = 0;
         int si = 0;
-        ArrayList<Object> result = new ArrayList<>();
+        ArrayList result = new ArrayList();
         while (fi < firstList.size() && si < secondList.size()) {
             if(comparator.compare(firstList.get(fi), secondList.get(si)) > 0) {
                 result.add(firstList.get(fi));

@@ -17,7 +17,7 @@ public class WordStats {
         }
         Map<String, ArrayList<Map.Entry<String, Integer>>> favoriteWordsPerAuthor = new HashMap<>();
         for (Map.Entry<String, Map<String, Integer>> authorWordEntry : authorWordMap.entrySet()) {
-            ArrayList<Map.Entry<String, Integer>> sortedFavoriteWords = sortMethods.mergeSort(new ArrayList<>(authorWordEntry.getValue().entrySet()), new EntryComparator());
+            ArrayList<Map.Entry<String, Integer>> sortedFavoriteWords = SortMethods.mergeSort(new ArrayList<>(authorWordEntry.getValue().entrySet()), new EntryComparator());
             favoriteWordsPerAuthor.put(authorWordEntry.getKey(), new ArrayList<>(sortedFavoriteWords.subList(0, Math.min(10, sortedFavoriteWords.size()))));
         }
         Map<String, Integer> wordCountPerAuthor = new HashMap<>();
@@ -28,7 +28,7 @@ public class WordStats {
             }
             wordCountPerAuthor.put(authorWordEntry.getKey(), countForCurrentAuthor);
         }
-        ArrayList<Map.Entry<String, Integer>> totalWordCountPerAuthor = sortMethods.mergeSort(new ArrayList<>(wordCountPerAuthor.entrySet()), new EntryComparator());
+        ArrayList<Map.Entry<String, Integer>> totalWordCountPerAuthor = SortMethods.mergeSort(new ArrayList<>(wordCountPerAuthor.entrySet()), new EntryComparator());
         int i;
         for (Map.Entry<String, Integer> entry : totalWordCountPerAuthor) {
             io.output("\n" + entry.getKey() + " heeft " + entry.getValue() + " woorden uitgekraamd.\nDit zijn de favorieten:");

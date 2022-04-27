@@ -1,29 +1,28 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 public class InputOutput {
     private final File inputFile;
     private final File outputDirectory;
     private FileWriter fileWriter;
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public InputOutput(File inputFile) throws FileNotFoundException {
+
+    public InputOutput(File inputFile) {
 
         this.inputFile = inputFile;
         String outputPath = inputFile.getParent() + File.separator + inputFile.getName().split("\\.")[0] + "__report";
         File outputDirectory1 = new File(outputPath);
 
         try {
-            if (outputDirectory1.isDirectory() && outputDirectory1.listFiles() != null) {
-                for (File file : outputDirectory1.listFiles()) {
-                    file.delete();
-                }
+            if (outputDirectory1.listFiles() != null && outputDirectory1.isDirectory()) {
+                    for (File file : outputDirectory1.listFiles()) {
+                        file.delete();
+                    }
+
             }
             Files.deleteIfExists(Paths.get(outputPath));
         } catch (IOException e) {
@@ -32,7 +31,8 @@ public class InputOutput {
         }
         this.outputDirectory = new File(outputPath);;
         if(!this.outputDirectory.mkdir() && !this.outputDirectory.isDirectory()) {
-            throw new FileNotFoundException();
+            System.out.println("File stuff not working");
+            System.exit(1);
         }
         setFileName("default");
     }
