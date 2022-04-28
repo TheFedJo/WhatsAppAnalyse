@@ -16,10 +16,9 @@ public class Main {
     public static void main(String[] args) {
         timer.start();
 
-        File inputFile = new File(String.valueOf(Paths.get("data", "chats", "DGM30-03-22.txt")));
+        File inputFile = new File(String.valueOf(Paths.get("data", "chats", "DGM28-04-22.txt")));
         System.out.println("Using file " + inputFile.getName() + " with size: " + inputFile.length() + " bytes.");
         InputOutput io = new InputOutput(inputFile);
-        io.setFileName("default");
 
         new WhatsAppMessageParser(inputFile, whatsAppMessages).parseFullFile();
         filterToStandardMessagesOnly(whatsAppMessages);
@@ -49,6 +48,7 @@ public class Main {
         }
 
         new WordStats(io).allStats(wordOccurrencePerAuthor);
+        new Charts(io, whatsAppMessages).allCharts();
 
         timer.stop("Calculating other stats");
         System.out.println("Now enter your query");
