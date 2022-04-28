@@ -35,6 +35,10 @@ public class WhatsAppMessage {
         return messageType;
     }
 
+    public LocalDateTime getDateTime() {
+        return LocalDateTime.of(getDate(), getTime());
+    }
+
     public void appendMessage(String nextLine) {
         this.message = getMessage() + "\n" + nextLine;
     }
