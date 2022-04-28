@@ -11,7 +11,6 @@ public class WordStats {
 
     public void allStats(Map<String, Map<String, Integer>> authorWordMap) {
         generalWordTopTen(authorWordMap);
-
         wordCountPerAuthorAndFavoriteWords(authorWordMap);
     }
 
@@ -25,6 +24,16 @@ public class WordStats {
                     generalWordMap.replace(entry.getKey(), generalWordMap.get(entry.getKey()) + entry.getValue());
                 }
             }
+        }
+        ArrayList<Map.Entry> entryList = new ArrayList<>(generalWordMap.entrySet());
+        entryList = SortMethods.mergeSort(entryList, new EntryComparator());
+        long totalWordCount = 0;
+        for (Map.Entry<String, Integer> entry : entryList) {
+            totalWordCount +=  entry.getValue();
+        }
+        io.output("\nDe meest gebruikte woorden zijn (van " + totalWordCount + " totaal):");
+        for (int i = 1; i <= 10; i++) {
+            io.output(i + ". " + entryList.get(i - 1).getKey() + ", " + entryList.get(i - 1).getValue() + " keer.");
         }
     }
 
