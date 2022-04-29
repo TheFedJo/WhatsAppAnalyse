@@ -77,16 +77,20 @@ public class InputOutput {
         }
     }
 
-    public void printToPNG(JFreeChart chart, int width, int length) {
+    public void printToPNG(JFreeChart chart, int width, int height) {
         String fileName = chart.getTitle().getText();
         if (!fileName.endsWith(".png")) {
             fileName = fileName.split("\\.")[0] + ".png";
         }
         File outputFile = new File(outputDirectory.getAbsolutePath() + File.separator + fileName);
         try {
-            ChartUtils.saveChartAsPNG(outputFile, chart, width, length);
+            ChartUtils.saveChartAsPNG(outputFile, chart, width, height);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void printToPNG(JFreeChart chart) {
+        printToPNG(chart, 960, 540);
     }
 }
