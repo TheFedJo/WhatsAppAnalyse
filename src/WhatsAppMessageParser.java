@@ -8,7 +8,6 @@ import java.util.stream.IntStream;
 
 public class WhatsAppMessageParser {
     private static final Pattern DATE_TIME_PATTERN = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])-(0?[1-9]|[1][0-2])-[0-9]+\\s+(0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[1-5][0-9])", Pattern.CASE_INSENSITIVE);
-    private static final Pattern AUTHOR_NAME_PATTERN = Pattern.compile("([a-záàâãéëèêíïóôõöúçñ]+([a-záàâãéëèêíïóôõöúçñ]+)+)|([a-záàâãéëèêíïóôõöúçñ ]+)|(\\+[0-9]+\\s+\\d\\s+[0-9]+)", Pattern.CASE_INSENSITIVE);
     private InputOutput io;
     private BufferedReader bufferedReader;
     private final ArrayList<WhatsAppMessage> messageList;
