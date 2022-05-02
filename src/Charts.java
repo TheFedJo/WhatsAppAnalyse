@@ -103,6 +103,6 @@ public class Charts {
         }
         JFreeChart lineChart =  ChartFactory.createLineChart("Gemiddeld aantal berichten per uur (iedereen voor zich)", "Uur", "berichten", data);
         io.printToPNG(lineChart);
-        io.printToPNG(lineChart, 3840, 2160);
+        io.printToPNG(lineChart, 1920, 1080);
     }
 }
