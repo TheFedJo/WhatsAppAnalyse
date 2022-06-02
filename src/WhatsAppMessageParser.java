@@ -27,7 +27,7 @@ public class WhatsAppMessageParser {
         // for debugging
         this(file, messageList);
         this.io = io;
-        
+        io.setFileName("chat as read");
     }
 
     public WhatsAppMessageParser() {
