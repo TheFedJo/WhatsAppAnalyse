@@ -5,8 +5,6 @@ import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,16 +72,29 @@ public class Charts {
     }
 
     private long messageHistoryTimespanDays(ArrayList<WhatsAppMessage> messages) {
-        LocalDateTime earliest = messages.get(0).getDateTime();
-        LocalDateTime latest = messages.get(0).getDateTime();
+        return latestDate(messages) - earliestDate(messages);
+    }
+
+    private long earliestDate(ArrayList<WhatsAppMessage> messages) {
+        long earliest = messages.get(0).getEpochDate();
         for (WhatsAppMessage message : messages) {
-            if (message.getDateTime().isBefore(earliest)) {
-                earliest = message.getDateTime();
-            } else if (message.getDateTime().isAfter(latest)) {
-                latest = message.getDateTime();
+            long epochDate = message.getEpochDate();
+            if (epochDate < earliest) {
+                earliest = epochDate;
             }
         }
-        return latest.getLong(ChronoField.EPOCH_DAY) - earliest.getLong(ChronoField.EPOCH_DAY);
+        return earliest;
+    }
+
+    private long latestDate(ArrayList<WhatsAppMessage> messages) {
+        long latest = messages.get(0).getEpochDate();
+        for (WhatsAppMessage message : messages) {
+            long epochDate = message.getEpochDate();
+            if (epochDate > latest) {
+                latest = epochDate;
+            }
+        }
+        return latest;
     }
 
     private void averageMessageUserHourLineChart() {
@@ -110,19 +121,20 @@ public class Charts {
 
     private void messagesPerDayChart() {
         HashMap<String, HashMap<Long, Integer>> authorDayMessageCountMap = new HashMap<>();
+        long latestDate = latestDate(messages);
+        long earliestDate = earliestDate(messages);
+        for (String author : WordStats.createAuthorList(messages)) {
+            authorDayMessageCountMap.put(author, new HashMap<>());
+            Map<Long, Integer> currentMap = authorDayMessageCountMap.get(author);
+            for (long i = earliestDate; i <= latestDate; i++) {
+                currentMap.put(i, 0);
+            }
+        }
         for (WhatsAppMessage message : messages) {
-            String author = message.getAuthor();
-            if (!authorDayMessageCountMap.containsKey(author)) {
-                authorDayMessageCountMap.put(author, new HashMap<>());
-            }
             long epochDay = message.getDate().toEpochDay();
-            HashMap<Long, Integer> thisAuthorMap = authorDayMessageCountMap.get(author);
-            if (!thisAuthorMap.containsKey(epochDay)) {
-                thisAuthorMap.put(epochDay, 0);
-            }
+            HashMap<Long, Integer> thisAuthorMap = authorDayMessageCountMap.get(message.getAuthor());
             thisAuthorMap.replace(epochDay, thisAuthorMap.get(epochDay) + 1);
         }
-
         DefaultCategoryDataset data = new DefaultCategoryDataset();
         for (Map.Entry<String, HashMap<Long, Integer>> authorEntry : authorDayMessageCountMap.entrySet()) {
             for (Map.Entry<Long, Integer> dayEntry : authorEntry.getValue().entrySet()) {
@@ -131,6 +143,7 @@ public class Charts {
         }
         JFreeChart lineChart =  ChartFactory.createLineChart("Berichtentrend", "dag", "berichten", data);
         lineChart.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_90);
-        io.printToPNG(lineChart, 1920, 1080);
+        io.printToPNG(lineChart, 3840, 1080);
     }
 }
+
