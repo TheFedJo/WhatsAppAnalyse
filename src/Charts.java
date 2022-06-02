@@ -1,8 +1,10 @@
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ public class Charts {
         totalMessagePerHour();
         averageMessagePerHour();
         averageMessageUserHourLineChart();
+        messagesPerDayChart();
 
     }
 
@@ -58,7 +61,7 @@ public class Charts {
 
     public CategoryDataset averageMessagePerHourDataset() {
         Map<Integer, Integer> hourMessageCountMap = messageMapPerHour(this.messages);
-        long timespanDays = messageHistoryTimespanDays();
+        long timespanDays = messageHistoryTimespanDays(messages);
         Map<Integer, Double> averageMessagePerHourMap = new HashMap<>(24);
         for (Map.Entry<Integer, Integer> entry : hourMessageCountMap.entrySet()) {
             averageMessagePerHourMap.put(entry.getKey(), (double) entry.getValue() / timespanDays);
@@ -70,7 +73,7 @@ public class Charts {
         return data;
     }
 
-    private long messageHistoryTimespanDays() {
+    private long messageHistoryTimespanDays(ArrayList<WhatsAppMessage> messages) {
         LocalDateTime earliest = messages.get(0).getDateTime();
         LocalDateTime latest = messages.get(0).getDateTime();
         for (WhatsAppMessage message : messages) {
@@ -85,7 +88,7 @@ public class Charts {
 
     private void averageMessageUserHourLineChart() {
         HashMap<String, Map<Integer, Integer>> fullMap = new HashMap<>();
-        for (String author : Main.createAuthorList(messages)) {
+        for (String author : WordStats.createAuthorList(messages)) {
             fullMap.put(author, new HashMap<>());
             for (int hour = 0; hour < 24; hour++) {
                 fullMap.get(author).put(hour, 0);
@@ -94,7 +97,7 @@ public class Charts {
         for (WhatsAppMessage message : messages) {
             fullMap.get(message.getAuthor()).replace(message.getTime().getHour(), fullMap.get(message.getAuthor()).get(message.getTime().getHour()) + 1);
         }
-        long timespanDays = messageHistoryTimespanDays();
+        long timespanDays = messageHistoryTimespanDays(messages);
         DefaultCategoryDataset data = new DefaultCategoryDataset();
         for (Map.Entry<String, Map<Integer, Integer>> entry : fullMap.entrySet()) {
             for (Map.Entry<Integer, Integer> hourEntry : entry.getValue().entrySet()) {
@@ -102,7 +105,32 @@ public class Charts {
             }
         }
         JFreeChart lineChart =  ChartFactory.createLineChart("Gemiddeld aantal berichten per uur (iedereen voor zich)", "Uur", "berichten", data);
-        io.printToPNG(lineChart);
+        io.printToPNG(lineChart, 1920, 1080);
+    }
+
+    private void messagesPerDayChart() {
+        HashMap<String, HashMap<Long, Integer>> authorDayMessageCountMap = new HashMap<>();
+        for (WhatsAppMessage message : messages) {
+            String author = message.getAuthor();
+            if (!authorDayMessageCountMap.containsKey(author)) {
+                authorDayMessageCountMap.put(author, new HashMap<>());
+            }
+            long epochDay = message.getDate().toEpochDay();
+            HashMap<Long, Integer> thisAuthorMap = authorDayMessageCountMap.get(author);
+            if (!thisAuthorMap.containsKey(epochDay)) {
+                thisAuthorMap.put(epochDay, 0);
+            }
+            thisAuthorMap.replace(epochDay, thisAuthorMap.get(epochDay) + 1);
+        }
+
+        DefaultCategoryDataset data = new DefaultCategoryDataset();
+        for (Map.Entry<String, HashMap<Long, Integer>> authorEntry : authorDayMessageCountMap.entrySet()) {
+            for (Map.Entry<Long, Integer> dayEntry : authorEntry.getValue().entrySet()) {
+                data.addValue(dayEntry.getValue(), authorEntry.getKey(), LocalDate.ofEpochDay(dayEntry.getKey()));
+            }
+        }
+        JFreeChart lineChart =  ChartFactory.createLineChart("Berichtentrend", "dag", "berichten", data);
+        lineChart.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_90);
         io.printToPNG(lineChart, 1920, 1080);
     }
 }
