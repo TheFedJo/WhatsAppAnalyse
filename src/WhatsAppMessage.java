@@ -18,6 +18,9 @@ public class WhatsAppMessage {
         this.messageType = messageType;
         this.message = message;
     }
+    public long getEpochDate() {
+        return date.toEpochDay();
+    }
 
     public LocalTime getTime() {
         return time;
