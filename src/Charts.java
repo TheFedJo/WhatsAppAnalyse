@@ -23,7 +23,6 @@ public class Charts {
         averageMessagePerHour();
         averageMessageUserHourLineChart();
         messagesPerDayChart();
-
     }
 
     public void averageMessagePerHour() {
@@ -143,7 +142,7 @@ public class Charts {
         }
         JFreeChart lineChart =  ChartFactory.createLineChart("Berichtentrend", "dag", "berichten", data);
         lineChart.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_90);
-        io.printToPNG(lineChart, 3840, 1080);
+        io.printToPNG(lineChart, 9600, 1080);
     }
 }
 

@@ -14,7 +14,7 @@ public class Main {
     public static void main(String[] args) {
         timer.start();
 
-        File inputFile = new File(String.valueOf(Paths.get("data", "chats", "DGM28-04-22.txt")));
+        File inputFile = new File(String.valueOf(Paths.get("data", "chats", "DGM03-06-22.txt")));
         System.out.println("Using file " + inputFile.getName() + " with size: " + inputFile.length() + " bytes.");
         InputOutput io = new InputOutput(inputFile);
 
