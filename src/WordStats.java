@@ -4,14 +4,22 @@ import java.util.*;
 
 public class WordStats {
     private final InputOutput io;
+    private final ArrayList<WhatsAppMessage> whatsAppMessages;
 
-    public WordStats(InputOutput io) {
+    public WordStats(InputOutput io, ArrayList<WhatsAppMessage> whatsAppMessages) {
         this.io = io;
+        this.whatsAppMessages = whatsAppMessages;
     }
 
     public void allStats(Map<String, Map<String, Integer>> authorWordMap) {
         generalWordTopTen(authorWordMap);
         wordCountPerAuthorAndFavoriteWords(authorWordMap);
+        countMessageRecent(whatsAppMessages, 30, io);
+
+        countMessageRecent(whatsAppMessages, 90, io);
+
+        countMessageRecent(whatsAppMessages, 180, io);
+
     }
 
     protected static ArrayList<String> createAuthorList(ArrayList<WhatsAppMessage> whatsAppMessages) {
@@ -101,6 +109,22 @@ public class WordStats {
         Main.sortedAuthorMessageCountEntries = SortMethods.mergeSort(new ArrayList(Main.messageCountPerAuthor.entrySet()), new EntryComparator());
         int i = 1;
         for (Map.Entry<String, Integer> entry : Main.sortedAuthorMessageCountEntries) {
+            io.output(i + ". " + entry.getKey() + " met " + entry.getValue() + " berichten.");
+            i++;
+        }
+
+    }
+
+    protected static void countMessageRecent(ArrayList<WhatsAppMessage> whatsAppMessages, int timespanBeforeLastMessage, InputOutput io) {
+        ArrayList<WhatsAppMessage> messages = new ArrayList<>(whatsAppMessages);
+        ArrayList<String> authorList = createAuthorList(messages);
+        long earliestDay = Charts.latestDate(messages) - timespanBeforeLastMessage;
+        messages.removeIf(message -> message.getEpochDate() < earliestDay);
+        io.output("In totaal zijn er in de laatste " + timespanBeforeLastMessage + " dagen zoveel berichten gestuurd: " + messages.size());
+        Map<String, Integer> messageCountPerAuthor =  calcMessageAmountPerAuthor(authorList, messages);
+        ArrayList<Map.Entry<String, Integer>> authorMessageCountList = SortMethods.mergeSort(new ArrayList(messageCountPerAuthor.entrySet()), new EntryComparator());
+        int i = 1;
+        for (Map.Entry<String, Integer> entry : authorMessageCountList) {
             io.output(i + ". " + entry.getKey() + " met " + entry.getValue() + " berichten.");
             i++;
         }

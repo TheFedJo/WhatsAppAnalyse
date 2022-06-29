@@ -74,7 +74,7 @@ public class Charts {
         return latestDate(messages) - earliestDate(messages);
     }
 
-    private long earliestDate(ArrayList<WhatsAppMessage> messages) {
+    protected static long earliestDate(ArrayList<WhatsAppMessage> messages) {
         long earliest = messages.get(0).getEpochDate();
         for (WhatsAppMessage message : messages) {
             long epochDate = message.getEpochDate();
@@ -85,7 +85,7 @@ public class Charts {
         return earliest;
     }
 
-    private long latestDate(ArrayList<WhatsAppMessage> messages) {
+    protected static long latestDate(ArrayList<WhatsAppMessage> messages) {
         long latest = messages.get(0).getEpochDate();
         for (WhatsAppMessage message : messages) {
             long epochDate = message.getEpochDate();
