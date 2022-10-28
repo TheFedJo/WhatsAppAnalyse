@@ -1,8 +1,13 @@
+package stats;
+
+import main.InputOutput;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
+import parse.WhatsAppMessage;
+import stats.WordStats;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

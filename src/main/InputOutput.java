@@ -1,3 +1,5 @@
+package main;
+
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 

@@ -1,3 +1,8 @@
+package parse;
+
+
+import main.InputOutput;
+
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,9 +16,11 @@ public class WhatsAppMessageParser {
     private InputOutput io;
     private BufferedReader bufferedReader;
     private final ArrayList<WhatsAppMessage> messageList;
+    private WhatsAppChat chat;
 
     public WhatsAppMessageParser(File file, ArrayList<WhatsAppMessage> messageList) {
         this.messageList = messageList;
+        this.chat = new WhatsAppChat();
         try {
             this.bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
         } catch (Exception e) {
@@ -26,13 +33,16 @@ public class WhatsAppMessageParser {
     public WhatsAppMessageParser(File file, ArrayList<WhatsAppMessage> messageList, InputOutput io) {
         // for debugging
         this(file, messageList);
+        this.chat = null;
         this.io = io;
         io.setFileName("chat as read");
+
     }
 
     public WhatsAppMessageParser() {
         // for testing purposes
         this.messageList = new ArrayList<>();
+        this.chat = null;
     }
 
     private String nextLine() throws IOException {

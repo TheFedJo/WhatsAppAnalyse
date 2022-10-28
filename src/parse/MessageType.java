@@ -1,3 +1,5 @@
+package parse;
+
 /**
  * The type of message (self-explanatory imo)
  */
