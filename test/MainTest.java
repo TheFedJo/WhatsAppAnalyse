@@ -1,5 +1,7 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import parse.WhatsAppMessageParser;
+import stats.WordStats;
 
 
 import static org.junit.jupiter.api.Assertions.*;
