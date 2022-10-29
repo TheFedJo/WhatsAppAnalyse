@@ -20,7 +20,19 @@ public class WhatsAppMessageParser {
 
     public WhatsAppMessageParser(File file, ArrayList<WhatsAppMessage> messageList) {
         this.messageList = messageList;
-        this.chat = new WhatsAppChat();
+        this.chat = new WhatsAppChat(null);
+        try {
+            this.bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+        } catch (Exception e) {
+            System.out.println("Something went wrong:");
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    public WhatsAppMessageParser(File file, WhatsAppChat chat) {
+        this.messageList = new ArrayList<>();
+        this.chat = chat;
         try {
             this.bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
         } catch (Exception e) {
@@ -36,7 +48,6 @@ public class WhatsAppMessageParser {
         this.chat = null;
         this.io = io;
         io.setFileName("chat as read");
-
     }
 
     public WhatsAppMessageParser() {
@@ -84,12 +95,14 @@ public class WhatsAppMessageParser {
                         continue;
                 }
                 messageList.add(lastMessage);
+                chat.addMessage(lastMessage);
                 if (messageType != MessageType.STANDARD && lastMessage.getMessage().contains(":")) {
-                    System.err.println("OK NOT GONNA HAPPEN");
+                    System.err.println("OK NOT GONNA HAPPEN");                                                  // what does this mean idk
 
                 }
             //    io.output(messageType + ", " + lastMessage.getAuthor() + "\n" + lastMessage); // debug line
             }
+            chat.close();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);

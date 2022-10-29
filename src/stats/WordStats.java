@@ -2,6 +2,7 @@ package stats;
 
 import main.InputOutput;
 import parse.MessageType;
+import parse.WhatsAppChat;
 import parse.WhatsAppMessage;
 import util.EntryComparator;
 import util.SortMethods;
@@ -79,13 +80,13 @@ public class WordStats {
         return result;
     }
 
-    public static Map<String, Map<String, Integer>> wordOccurrenceMapPerAuthor(ArrayList<WhatsAppMessage> whatsAppMessages, ArrayList<String> authorList) {
+    public static Map<String, Map<String, Integer>> wordOccurrenceMapPerAuthor(WhatsAppChat chat) {
         Map<String, Map<String, Integer>> finalResult = new HashMap<>();
-        for (String author : authorList) {
+        for (String author : chat.getAuthorList()) {
             finalResult.put(author, new HashMap<>());
         }
         String lowerCaseWord;
-        for (WhatsAppMessage message : whatsAppMessages) {
+        for (WhatsAppMessage message : chat.getRegularMessages()) {
             for (String word : stringToWordsArray(message.getMessage())) {
                 lowerCaseWord = word.toLowerCase(Locale.ROOT);
                 if (finalResult.get(message.getAuthor()).containsKey(lowerCaseWord)) {
@@ -116,9 +117,9 @@ public class WordStats {
         return bd.doubleValue();
     }
 
-    public static void countMessages(ArrayList<WhatsAppMessage> messages, InputOutput io) {
-        io.output("In totaal zijn er " + messages.size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
-        Map<String, Integer> messageCountPerAuthor =  calcMessageAmountPerAuthor(createAuthorList(messages), messages);
+    public static void countMessages(WhatsAppChat chat, InputOutput io) {
+        io.output("In totaal zijn er " + chat.getRegularMessages().size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
+        Map<String, Integer> messageCountPerAuthor =  calcMessageAmountPerAuthor(chat.getAuthorList(), chat.getRegularMessages());
         Stats.makeSimpleTopTen(messageCountPerAuthor.entrySet(), 0,io);
     }
 
