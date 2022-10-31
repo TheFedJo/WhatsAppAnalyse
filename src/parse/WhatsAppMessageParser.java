@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
 
 public class WhatsAppMessageParser {
     private static final Pattern DATE_TIME_PATTERN = Pattern.compile("(0?[1-9]|[12][0-9]|3[01])-(0?[1-9]|[1][0-2])-[0-9]+\\s+(0?[0-9]|1[0-9]|2[0-3]):(0?[0-9]|[1-5][0-9])", Pattern.CASE_INSENSITIVE);
-    private InputOutput io;
     private BufferedReader bufferedReader;
     private final ArrayList<WhatsAppMessage> messageList;
     private WhatsAppChat chat;
@@ -46,7 +45,6 @@ public class WhatsAppMessageParser {
         // for debugging
         this(file, messageList);
         this.chat = null;
-        this.io = io;
         io.setFileName("chat as read");
     }
 
@@ -162,7 +160,7 @@ public class WhatsAppMessageParser {
     }
 
     /**
-     * Retrieves the type of message from a particular line (OTHER will be appended to the previous message)
+     * Retrieves the type of message from a particular line (NEWLINE will be appended to the previous message)
      * @param line the line to be parsed
      * @return messageType
      */
@@ -191,7 +189,7 @@ public class WhatsAppMessageParser {
                 return MessageType.START_CALL;
             } else if (line.contains("onderwerp")) {
                 return MessageType.EDIT_NAME;
-            } else if (line.contains("groepsinstellingen")) {
+            } else if (line.contains("groepsinstelling")) {
                 return MessageType.EDIT_SETTINGS;
             } else if (line.contains("beheerder")) {
                 return MessageType.ADMIN_CHANGE;
