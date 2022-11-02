@@ -16,7 +16,7 @@ public class InputOutput {
         this.inputFile = inputFile;
         String outputPath = inputFile.getParent() + File.separator + inputFile.getName().split("\\.")[0] + "__report";
         deleteDirectory(new File(outputPath));
-        this.outputDirectory = new File(outputPath);;
+        this.outputDirectory = new File(outputPath);
         if(!this.outputDirectory.mkdir() && !this.outputDirectory.isDirectory()) {
             System.out.println("File stuff not working");
             System.exit(1);
@@ -60,7 +60,7 @@ public class InputOutput {
 
     public void setFileName(String fileName) {
         if (!fileName.endsWith(".txt") && !fileName.endsWith(".md")) {
-            fileName = fileName.split("\\.")[0] + ".txt";
+            fileName = fileName.split("\\.")[0] + ".md";
         }
         if (null != fileWriter) {
             try {
