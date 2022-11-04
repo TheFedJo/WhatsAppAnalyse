@@ -1,40 +1,87 @@
 package main;
 
-import parse.MessageType;
 import parse.WhatsAppChat;
-import parse.WhatsAppMessage;
 import parse.WhatsAppMessageParser;
 import stats.Charts;
+import stats.Stats;
 import stats.WordStats;
-import util.EntryComparator;
-import util.SortMethods;
 import util.Timer;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
-    public static ArrayList<String> authorList;
-    public static ArrayList<Map.Entry<String, Integer>> sortedAuthorMessageCountEntries;
-    public static Map<String, Integer> messageCountPerAuthor;
     public static Map<String, Map<String, Integer>> wordOccurrencePerAuthor;
-    public static ArrayList<Map.Entry<String, Double>> informationPerAuthor;
     private static final Timer timer = new Timer();
     public static WhatsAppChat chat;
+    private static final File dataFolder = new File(String.valueOf(Paths.get("data", "chats")));
+    private static InputOutput io;
+    private static boolean parseAllChats;
+    private static boolean parseSeveralChats;
 
     public static void main(String[] args) {
+        ArrayList<File> fileList = new ArrayList<File>(List.of(dataFolder.listFiles()));
+        fileList.removeIf(File::isDirectory);
+        fileList.removeIf(file -> !file.getName().endsWith(".txt"));
+        System.err.printf("Files found in %s:\n", fileList.get(0).getParentFile().getAbsolutePath());
+        fileList.stream().map(File::getName).forEach(System.err::println);
+        parseAllChats = false;
+        parseSeveralChats = true;
+        if (parseAllChats) {
+            for (File file : fileList) {
+                parseFile(file);
+            }
+        } else if(parseSeveralChats) {
+            File[] fileArray = new File[2];
+            fileArray[0] = new File(dataFolder, "Intel25-08-22.txt");
+            fileArray[1] = new File(dataFolder, "Intel25-10-22.txt");
+            parseFiles(fileArray);
+        } else {
+            parseFile(new File(String.valueOf(Paths.get("data", "chats", "Intel25-10-22.txt"))));
+        }
+        System.out.println("Now enter your query");
+    }
+
+    private static void parseFile(File chatFile) {
         timer.start();
+        chat = new WhatsAppChat(chatFile.getName());
+        System.out.println("Using file " + chatFile.getName() + " with size: " + chatFile.length() + " bytes.");
+        io = new InputOutput(chatFile);
+        new WhatsAppMessageParser(chatFile, chat).parseFullFile();
+        io.output("This chat's earliest message is from: " + chat.getRegularMessages().get(0).getDateTime().toString());
+        parseChat();
+    }
 
-        File inputFile = new File(String.valueOf(Paths.get("data", "chats", "Omzicht28-10-22.txt")));
-        chat = new WhatsAppChat(inputFile.getName());
-        System.out.println("Using file " + inputFile.getName() + " with size: " + inputFile.length() + " bytes.");
-        InputOutput io = new InputOutput(inputFile);
+    private static void parseFiles(File[] chatFiles) {
+        timer.start();
+        chat = new WhatsAppChat(chatFiles[0].getName());
+        io = new InputOutput(chatFiles[0]);
+        StringBuilder sb = new StringBuilder();
+        for (File file : chatFiles) {
+            sb.append(file.getName());
+        }
+        io.setFileName(sb.toString());
 
-        new WhatsAppMessageParser(inputFile, chat).parseFullFile();
 
+        WhatsAppChat chatToAdd;
+        new WhatsAppMessageParser(chatFiles[0], chat).parseFullFile();
+        for(File file : chatFiles) {
+            chatToAdd = new WhatsAppChat(file.getName());
+            new WhatsAppMessageParser(file, chatToAdd);
+            System.out.println("Using file " + file.getName() + " with size: " + file.length() + " bytes.");
+            new WhatsAppMessageParser(file, chat).parseFullFile();
+            System.err.println("This chat's earliest message is from: " + chat.getRegularMessages().get(0).getDateTime().toString());
+            if (!chatFiles[0].equals(file)) {
+                chat = chat.addChat(chatToAdd);
+            }
+        }
+        io.writeToFile("chat", chat.toString());
+        parseChat();
+    }
+
+    private static void parseChat() {
         timer.stopStart("Parsing");
 
         WordStats.countMessages(chat, io);
@@ -42,53 +89,21 @@ public class Main {
         timer.stopStart("Counting");
 
         wordOccurrencePerAuthor = WordStats.wordOccurrenceMapPerAuthor(chat);
-        informationPerAuthor = SortMethods.mergeSort(new ArrayList<>(WordStats.informationPerAuthor(wordOccurrencePerAuthor).entrySet()), new EntryComparator());
-        int i = 1;
-        io.output("\n");
-        for (Map.Entry<String, Double> entry : informationPerAuthor) {
-            io.output(i + ". " + entry.getKey() + " met " + WordStats.round(entry.getValue(), 2) + " bits verschillende informatie.");
-            i++;
-        }
 
-        new WordStats(io, chat.getRegularMessages()).allStats(wordOccurrencePerAuthor);
-        new Charts(io, chat.getRegularMessages()).allCharts();
+        io.output("\nWeergave van het gezegde per persoon in aantal bits (werkt niet helaas)");
+        Stats.makeTopDoubleN(WordStats.informationPerAuthor(wordOccurrencePerAuthor).entrySet(), 0, "Alle woorden van", "kunnen worden verkort tot","bits", io);
 
-        HashMap<String, Integer> deletedMessagesPerAuthor = new HashMap<>();
-        for(String author : chat.getAuthorList()) {
-            deletedMessagesPerAuthor.put(author, 0);
-        }
-        for (WhatsAppMessage message : chat.getDeletedMessages()) {
-            deletedMessagesPerAuthor.replace(message.getAuthor(), deletedMessagesPerAuthor.get(message.getAuthor()) + 1);
-        }
-        ArrayList<Map.Entry<String, Integer>> adtLijst = SortMethods.mergeSort(new ArrayList<>(deletedMessagesPerAuthor.entrySet()), new EntryComparator());
-        i = 1;
-        io.output("\n");
-        for (Map.Entry<String, Integer> entry : adtLijst) {
-            io.output(i + ". " + entry.getKey() + " met " + entry.getValue() + " verwijderde berichten.");
-            i++;
-        }
+        new WordStats(io, chat).allStats(wordOccurrencePerAuthor);
+        new Charts(io, chat).allCharts();
+
+        HashMap<String, Integer> deletedMessagesPerAuthor = chat.getAuthorList().stream().collect(Collectors.toMap(author -> author, author -> 0, (a, b) -> b, HashMap::new));
+        chat.getDeletedMessages().forEach(message -> deletedMessagesPerAuthor.replace(message.getAuthor(), deletedMessagesPerAuthor.get(message.getAuthor()) + 1));
+
+        io.output("\n\nVerwijderde berichten:");
+        Stats.makeTopIntegerN(deletedMessagesPerAuthor.entrySet(), 0, "", "heeft", "berichten verwijderd.", io);
         io.output("Admins hebben zoveel berichten verwijderd: " + chat.getAdminDeletedMessages().size());
 
         timer.stop("Calculating other stats");
-        System.out.println("Now enter your query");
-        HashMap<MessageType, Integer> map = new HashMap<MessageType, Integer>();
-        for (MessageType type : MessageType.values()) {
-            map.put(type, 0);
-        }
-        for (WhatsAppMessage message : chat.getMessages()) {
-            if(message.getMessageType() != MessageType.STANDARD) {
-                io.output(String.valueOf(message.getMessageType()));
-                io.output(message.toString());
-            }
-            map.replace(message.getMessageType(), map.get(message.getMessageType()) + 1);
-        }
-        for (Map.Entry entry : map.entrySet()) {
-            io.output(String.valueOf(entry));
-        }
-
-
-
-
     }
 }
 
