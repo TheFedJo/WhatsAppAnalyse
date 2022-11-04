@@ -6,8 +6,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
+import parse.WhatsAppChat;
 import parse.WhatsAppMessage;
-import stats.WordStats;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,10 +17,12 @@ import java.util.Map;
 public class Charts {
     private final InputOutput io;
     private final ArrayList<WhatsAppMessage> messages;
+    private final WhatsAppChat chat;
 
-    public Charts(InputOutput io, ArrayList<WhatsAppMessage> allStandardMessages) {
+    public Charts(InputOutput io, WhatsAppChat chat) {
         this.io = io;
-        this.messages = allStandardMessages;
+        this.messages = chat.getRegularMessages();
+        this.chat = chat;
     }
 
     public void allCharts() {
@@ -103,7 +105,7 @@ public class Charts {
 
     private void averageMessageUserHourLineChart() {
         HashMap<String, Map<Integer, Integer>> fullMap = new HashMap<>();
-        for (String author : WordStats.createAuthorList(messages)) {
+        for (String author : chat.getAuthorList()) {
             fullMap.put(author, new HashMap<>());
             for (int hour = 0; hour < 24; hour++) {
                 fullMap.get(author).put(hour, 0);
@@ -127,7 +129,7 @@ public class Charts {
         HashMap<String, HashMap<Long, Integer>> authorDayMessageCountMap = new HashMap<>();
         long latestDate = latestDate(messages);
         long earliestDate = earliestDate(messages);
-        for (String author : WordStats.createAuthorList(messages)) {
+        for (String author : chat.getAuthorList()) {
             authorDayMessageCountMap.put(author, new HashMap<>());
             Map<Long, Integer> currentMap = authorDayMessageCountMap.get(author);
             for (long i = earliestDate; i <= latestDate; i++) {
