@@ -51,10 +51,10 @@ public class WhatsAppMessage {
     @Override
     public String toString() {
         if(messageType == MessageType.STANDARD) {
-            return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) +
+            return date.format(DateTimeFormatter.ofPattern("dd-MM-yy")) +
                     " " + time.toString() + " - " + author + ": " + message;
         } else {
-            return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) +
+            return date.format(DateTimeFormatter.ofPattern("dd-MM-yy")) +
                     " " + time.toString() + " - " + message;
         }
     }
