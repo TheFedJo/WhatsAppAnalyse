@@ -48,8 +48,8 @@ public class WhatsAppChat {
     }
 
     private void parseDeletedMessages(){
-        deletedMessages = new ArrayList<WhatsAppMessage>();
-        adminDeletedMessages = new ArrayList<WhatsAppMessage>();
+        deletedMessages = new ArrayList<>();
+        adminDeletedMessages = new ArrayList<>();
         for (WhatsAppMessage message : messages) {
             String content = message.getMessage();
             if (content.equals("Dit bericht is verwijderd")  || content.equals("U hebt dit bericht verwijderd")) {
@@ -90,5 +90,34 @@ public class WhatsAppChat {
                 authorList.add(message.getAuthor());
             }
         }
+    }
+
+    public WhatsAppChat addChat(WhatsAppChat chat) {
+        WhatsAppChat result = new WhatsAppChat(this.name + " + " + chat.getName());
+        ArrayList<WhatsAppMessage> messages1 = this.getMessages();
+        ArrayList<WhatsAppMessage> messages2 = chat.getMessages();
+        for(WhatsAppMessage message1 : messages1) {
+            messages2.removeIf(message1::equals);
+        }
+        messages1.addAll(messages2);
+        for(WhatsAppMessage message : messages1) {
+            result.addMessage(message);
+        }
+        result.close();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getName()).append("\nAuthors:");
+        for (String author : this.getAuthorList()) {
+            sb.append("\n").append(author);
+        }
+        for (WhatsAppMessage message : this.messages) {
+            sb.append("\n").append(message);
+
+        }
+        return sb.toString();
     }
 }
