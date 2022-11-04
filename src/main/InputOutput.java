@@ -24,6 +24,7 @@ public class InputOutput {
         setFileName("default");
     }
 
+
     private void deleteDirectory(File directory) {
         if (directory != null) {
             File[] fileList = directory.listFiles();
@@ -44,6 +45,17 @@ public class InputOutput {
         try {
             fileWriter.write(output + "\n");
             fileWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeToFile(String fileName, String output) {
+        try {
+            FileWriter fw = new FileWriter(new File(outputDirectory, fileName));
+            fw.write(output);
+            fw.flush();
+            fw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
