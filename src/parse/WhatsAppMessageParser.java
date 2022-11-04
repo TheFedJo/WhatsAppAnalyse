@@ -58,7 +58,7 @@ public class WhatsAppMessageParser {
         return bufferedReader.readLine();
     }
 
-    public void parseFullFile() {
+    public WhatsAppChat parseFullFile() {
         MessageType messageType;
         WhatsAppMessage lastMessage = new WhatsAppMessage(LocalDateTime.now(),null, null,null);
         try {
@@ -93,6 +93,10 @@ public class WhatsAppMessageParser {
                         continue;
                 }
                 messageList.add(lastMessage);
+                if (!line.equals(lastMessage.toString())) {
+                    System.err.println(line);
+                    System.err.println(lastMessage.toString());
+                }
                 chat.addMessage(lastMessage);
                 if (messageType != MessageType.STANDARD && lastMessage.getMessage().contains(":")) {
                     System.err.println("OK NOT GONNA HAPPEN");                                                  // what does this mean idk
@@ -105,7 +109,7 @@ public class WhatsAppMessageParser {
             e.printStackTrace();
             System.exit(1);
         }
-        System.out.println("Parsing done.");
+        return chat;
     }
 
     protected static WhatsAppMessage toDefaultAdminMessage(String line, MessageType type) {  // case EDIT_DESCRIPTION, EDIT_PHOTO, KICK, LEAVE, ADD, JOIN
