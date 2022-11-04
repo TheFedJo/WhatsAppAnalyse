@@ -7,17 +7,17 @@ import parse.WhatsAppMessage;
 import util.EntryComparator;
 import util.SortMethods;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 public class WordStats {
     private final InputOutput io;
     private final ArrayList<WhatsAppMessage> whatsAppMessages;
+    private final WhatsAppChat chat;
 
-    public WordStats(InputOutput io, ArrayList<WhatsAppMessage> whatsAppMessages) {
+    public WordStats(InputOutput io, WhatsAppChat chat) {
         this.io = io;
-        this.whatsAppMessages = whatsAppMessages;
+        this.whatsAppMessages = chat.getRegularMessages();
+        this.chat = chat;
     }
 
     public void allStats(Map<String, Map<String, Integer>> authorWordMap) {
@@ -28,7 +28,7 @@ public class WordStats {
         countMessageRecent(whatsAppMessages, 90, io);
 
         countMessageRecent(whatsAppMessages, 180, io);
-//        for (String author : createAuthorList(whatsAppMessages)) {
+//        for (String author : chat.getAuthorList()) {
 //            io.output(author + "\n\n\n");
 //            for (WhatsAppMessage message : whatsAppMessages) {
 //                if (message.getAuthor().equals(author)) {
@@ -36,16 +36,6 @@ public class WordStats {
 //                }
 //            }
 //        }
-    }
-
-    public static ArrayList<String> createAuthorList(ArrayList<WhatsAppMessage> whatsAppMessages) {
-        ArrayList<String> authors = new ArrayList<>();
-        for (WhatsAppMessage whatsAppMessage : whatsAppMessages) {
-            if(!authors.contains(whatsAppMessage.getAuthor())) {
-                authors.add(whatsAppMessage.getAuthor());
-            }
-        }
-        return authors;
     }
 
     protected static Map<String, Integer> calcMessageAmountPerAuthor(ArrayList<String> authorList, ArrayList<WhatsAppMessage> messages) {
@@ -70,8 +60,11 @@ public class WordStats {
     }
 
     protected static double[] occurrenceSetToFrequencyList(Collection<Integer> occurrences) {
-        int size = occurrences.size();
-        double[] result = new double[size];
+        int size = 0;
+        for (int n : occurrences) {
+            size += n;
+        }
+        double[] result = new double[occurrences.size()];
         int i = 0;
         for (int occurrence : occurrences) {
             result[i] = (double) occurrence / size;
@@ -108,28 +101,21 @@ public class WordStats {
     }
 
     protected static String[] stringToWordsArray(String message) {
-        return message.split("[\\s+|:;\"'.,?]+");
-    }
-
-    public static double round(double value, int places) {
-        BigDecimal bd = BigDecimal.valueOf(value);
-        bd = bd.setScale(places, RoundingMode.HALF_UP);
-        return bd.doubleValue();
+        return message.split("[\\s+|:;\"'.,!?<>()]+");
     }
 
     public static void countMessages(WhatsAppChat chat, InputOutput io) {
         io.output("In totaal zijn er " + chat.getRegularMessages().size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
         Map<String, Integer> messageCountPerAuthor =  calcMessageAmountPerAuthor(chat.getAuthorList(), chat.getRegularMessages());
-        Stats.makeSimpleTopTen(messageCountPerAuthor.entrySet(), 0,io);
+        Stats.makeSimpleTopTen(messageCountPerAuthor.entrySet(), io);
     }
 
-    protected static void countMessageRecent(ArrayList<WhatsAppMessage> whatsAppMessages, int timespanBeforeLastMessage, InputOutput io) {
+    protected void countMessageRecent(ArrayList<WhatsAppMessage> whatsAppMessages, int timespanBeforeLastMessage, InputOutput io) {
         ArrayList<WhatsAppMessage> messages = new ArrayList<>(whatsAppMessages);
-        ArrayList<String> authorList = createAuthorList(messages);
         long earliestDay = Charts.latestDate(messages) - timespanBeforeLastMessage;
         messages.removeIf(message -> message.getEpochDate() < earliestDay);
         io.output("\n\nIn totaal zijn er in de laatste " + timespanBeforeLastMessage + " dagen zoveel berichten gestuurd: " + messages.size());
-        Stats.makeSimpleTopTen(calcMessageAmountPerAuthor(authorList, messages).entrySet(), 0, io);
+        Stats.makeSimpleTopTen(calcMessageAmountPerAuthor(chat.getAuthorList(), messages).entrySet(), io);
     }
 
     private void generalWordTopTen(Map<String, Map<String, Integer>> authorWordMap) {
@@ -170,14 +156,10 @@ public class WordStats {
             wordCountPerAuthor.put(authorWordEntry.getKey(), countForCurrentAuthor);
         }
         ArrayList<Map.Entry<String, Integer>> totalWordCountPerAuthor = SortMethods.mergeSort(new ArrayList<>(wordCountPerAuthor.entrySet()), new EntryComparator());
-        int i;
         for (Map.Entry<String, Integer> entry : totalWordCountPerAuthor) {
             io.output("\n" + entry.getKey() + " heeft " + entry.getValue() + " woorden uitgekraamd.\nDit zijn de favorieten:");
-            i = 1;
-            for (Map.Entry<String, Integer> wordPlusCount : favoriteWordsPerAuthor.get(entry.getKey())) {
-                io.output(i + ". " + wordPlusCount.getKey() + ", " + wordPlusCount.getValue() + " keer gezegd.");
-                i++;
-            }
+            Stats.makeTopIntegerN(new HashSet<>(favoriteWordsPerAuthor.get(entry.getKey())), 10, "", "is", "keer gezegd.", io);
+
         }
     }
 }
