@@ -18,17 +18,15 @@ public class Main {
     public static WhatsAppChat chat;
     private static final File dataFolder = new File(String.valueOf(Paths.get("data", "chats")));
     private static InputOutput io;
-    private static boolean parseAllChats;
-    private static boolean parseSeveralChats;
 
     public static void main(String[] args) {
-        ArrayList<File> fileList = new ArrayList<File>(List.of(dataFolder.listFiles()));
+        ArrayList<File> fileList = new ArrayList<>(List.of(dataFolder.listFiles()));
         fileList.removeIf(File::isDirectory);
         fileList.removeIf(file -> !file.getName().endsWith(".txt"));
         System.err.printf("Files found in %s:\n", fileList.get(0).getParentFile().getAbsolutePath());
         fileList.stream().map(File::getName).forEach(System.err::println);
-        parseAllChats = false;
-        parseSeveralChats = true;
+        boolean parseAllChats = false;
+        boolean parseSeveralChats = true;
         if (parseAllChats) {
             for (File file : fileList) {
                 parseFile(file);
@@ -39,7 +37,7 @@ public class Main {
             fileArray[1] = new File(dataFolder, "Intel25-10-22.txt");
             parseFiles(fileArray);
         } else {
-            parseFile(new File(String.valueOf(Paths.get("data", "chats", "Intel25-10-22.txt"))));
+            parseFile(new File(dataFolder, "chat.txt"));
         }
         System.out.println("Now enter your query");
     }
@@ -64,15 +62,13 @@ public class Main {
         }
         io.setFileName(sb.toString());
 
-
         WhatsAppChat chatToAdd;
         new WhatsAppMessageParser(chatFiles[0], chat).parseFullFile();
         for(File file : chatFiles) {
             chatToAdd = new WhatsAppChat(file.getName());
-            new WhatsAppMessageParser(file, chatToAdd);
             System.out.println("Using file " + file.getName() + " with size: " + file.length() + " bytes.");
-            new WhatsAppMessageParser(file, chat).parseFullFile();
-            System.err.println("This chat's earliest message is from: " + chat.getRegularMessages().get(0).getDateTime().toString());
+            new WhatsAppMessageParser(file, chatToAdd).parseFullFile();
+            System.err.println("This chat's earliest message is from: " + chatToAdd.getRegularMessages().get(0).getDateTime().toString());
             if (!chatFiles[0].equals(file)) {
                 chat = chat.addChat(chatToAdd);
             }
