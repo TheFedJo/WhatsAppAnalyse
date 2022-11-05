@@ -55,12 +55,13 @@ public class Main {
     private static void parseFiles(File[] chatFiles) {
         timer.start();
         chat = new WhatsAppChat(chatFiles[0].getName());
-        io = new InputOutput(chatFiles[0]);
+
         StringBuilder sb = new StringBuilder();
         for (File file : chatFiles) {
             sb.append(file.getName());
         }
-        io.setFileName(sb.toString());
+        io = new InputOutput(dataFolder, sb.toString());
+
 
         WhatsAppChat chatToAdd;
         new WhatsAppMessageParser(chatFiles[0], chat).parseFullFile();
