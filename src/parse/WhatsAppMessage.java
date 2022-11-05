@@ -49,6 +49,21 @@ public class WhatsAppMessage {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        WhatsAppMessage message1 = (WhatsAppMessage) o;
+
+        if (!getDate().equals(message1.getDate())) return false;
+        if (!getTime().equals(message1.getTime())) return false;
+        if (getAuthor() != null ? !getAuthor().equals(message1.getAuthor()) : message1.getAuthor() != null)
+            return false;
+        if (!getMessage().equals(message1.getMessage())) return false;
+        return getMessageType() == message1.getMessageType();
+    }
+
+    @Override
     public String toString() {
         if(messageType == MessageType.STANDARD) {
             return date.format(DateTimeFormatter.ofPattern("dd-MM-yy")) +
