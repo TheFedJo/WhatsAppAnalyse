@@ -58,7 +58,8 @@ public class Main {
 
         StringBuilder sb = new StringBuilder();
         for (File file : chatFiles) {
-            sb.append(file.getName());
+            String fileName = file.getName().split("\\.")[0];
+            sb.append(fileName);
         }
         io = new InputOutput(dataFolder, sb.toString());
 
