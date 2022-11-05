@@ -24,9 +24,9 @@ public class InputOutput {
         setFileName("default");
     }
 
-    public InputOutput(File outputDirectory, String chatname) {
-        this.inputFileName = chatname;
-        String outputPath = outputDirectory + File.separator + chatname.split("\\.")[0] + "-report";
+    public InputOutput(File outputDirectory, String chatName) {
+        this.inputFileName = chatName;
+        String outputPath = outputDirectory + File.separator + chatName.split("\\.")[0] + "-report";
         deleteDirectory(new File(outputPath));
         this.outputDirectory = new File(outputPath);
         if(!this.outputDirectory.mkdir() && !this.outputDirectory.isDirectory()) {
