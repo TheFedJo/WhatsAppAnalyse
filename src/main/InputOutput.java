@@ -8,12 +8,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class InputOutput {
-    private final File inputFile;
+    private final String inputFileName;
     private final File outputDirectory;
     private FileWriter fileWriter;
 
     public InputOutput(File inputFile) {
-        this.inputFile = inputFile;
+        this.inputFileName = inputFile.getName();
         String outputPath = inputFile.getParent() + File.separator + inputFile.getName().split("\\.")[0] + "__report";
         deleteDirectory(new File(outputPath));
         this.outputDirectory = new File(outputPath);
@@ -24,6 +24,17 @@ public class InputOutput {
         setFileName("default");
     }
 
+    public InputOutput(File outputDirectory, String chatname) {
+        this.inputFileName = chatname;
+        String outputPath = outputDirectory + File.separator + chatname.split("\\.")[0] + "-report";
+        deleteDirectory(new File(outputPath));
+        this.outputDirectory = new File(outputPath);
+        if(!this.outputDirectory.mkdir() && !this.outputDirectory.isDirectory()) {
+            System.out.println("File stuff not working");
+            System.exit(1);
+        }
+        setFileName("default");
+    }
 
     private void deleteDirectory(File directory) {
         if (directory != null) {
@@ -67,7 +78,7 @@ public class InputOutput {
     }
 
     public String getInputFileName() {
-        return inputFile.getName();
+        return inputFileName;
     }
 
     public void setFileName(String fileName) {
