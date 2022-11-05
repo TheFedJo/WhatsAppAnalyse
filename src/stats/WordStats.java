@@ -107,7 +107,7 @@ public class WordStats {
     public static void countMessages(WhatsAppChat chat, InputOutput io) {
         io.output("In totaal zijn er " + chat.getRegularMessages().size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
         Map<String, Integer> messageCountPerAuthor =  calcMessageAmountPerAuthor(chat.getAuthorList(), chat.getRegularMessages());
-        Stats.makeSimpleTopTen(messageCountPerAuthor.entrySet(), io);
+        Stats.makeSimpleTopN(messageCountPerAuthor.entrySet(), 0, io);
     }
 
     protected void countMessageRecent(ArrayList<WhatsAppMessage> whatsAppMessages, int timespanBeforeLastMessage, InputOutput io) {
@@ -115,7 +115,7 @@ public class WordStats {
         long earliestDay = Charts.latestDate(messages) - timespanBeforeLastMessage;
         messages.removeIf(message -> message.getEpochDate() < earliestDay);
         io.output("\n\nIn totaal zijn er in de laatste " + timespanBeforeLastMessage + " dagen zoveel berichten gestuurd: " + messages.size());
-        Stats.makeSimpleTopTen(calcMessageAmountPerAuthor(chat.getAuthorList(), messages).entrySet(), io);
+        Stats.makeSimpleTopN(calcMessageAmountPerAuthor(chat.getAuthorList(), messages).entrySet(), 10, io);
     }
 
     private void generalWordTopTen(Map<String, Map<String, Integer>> authorWordMap) {

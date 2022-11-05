@@ -8,8 +8,8 @@ import util.SortMethods;
 import java.util.*;
 
 public class Stats {
-    public static void makeSimpleTopTen(Set<Map.Entry<String, Integer>> entrySet, InputOutput io) {
-        makeTopIntegerN(entrySet, 10, "", "met", "berichten.", io);
+    public static void makeSimpleTopN(Set<Map.Entry<String, Integer>> entrySet, int n, InputOutput io) {
+        makeTopIntegerN(entrySet, n, "", "met", "berichten.", io);
     }
 
     /**
