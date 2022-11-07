@@ -1,5 +1,9 @@
 package parse;
 
+import util.MessageComparator;
+import util.SortMethods;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class WhatsAppChat {
@@ -21,8 +25,23 @@ public class WhatsAppChat {
     }
     public void addMessage(WhatsAppMessage message) {
         if (isOpen) {
-            messages.add(message);
+            add(message);
         }
+    }
+
+    private void add(WhatsAppMessage message) {
+        messages.add(message);
+    }
+
+    private void addMessages(ArrayList<WhatsAppMessage> messages) {
+        if(isOpen) {
+            for (WhatsAppMessage message : messages) {
+                add(message);
+            }
+        }
+    }
+    public void sortMessages() {
+        SortMethods.mergeSort(messages, new MessageComparator());
     }
 
     public void close() {
@@ -92,6 +111,27 @@ public class WhatsAppChat {
         }
     }
 
+    public LocalDateTime getEarliestMessageDateTime() {
+        WhatsAppMessage earliestMessage = this.getRegularMessages().get(0);
+        for (WhatsAppMessage message : this.getRegularMessages()) {
+            if (message.getDateTime().isBefore(earliestMessage.getDateTime())) {
+                earliestMessage = message;
+            }
+        }
+        return earliestMessage.getDateTime();
+    }
+
+    public LocalDateTime getLatestMessageDateTime() {
+        ArrayList<WhatsAppMessage> messages = this.getRegularMessages();
+        WhatsAppMessage latestMessage = messages.get(messages.size() - 1);
+        for (WhatsAppMessage message : this.getRegularMessages()) {
+            if (message.getDateTime().isAfter(latestMessage.getDateTime())) {
+                latestMessage = message;
+            }
+        }
+        return latestMessage.getDateTime();
+    }
+
     public WhatsAppChat addChat(WhatsAppChat chat) {
         WhatsAppChat result = new WhatsAppChat(this.name + " + " + chat.getName());
         ArrayList<WhatsAppMessage> messages1 = this.getMessages();
@@ -99,10 +139,8 @@ public class WhatsAppChat {
         for(WhatsAppMessage message1 : messages1) {
             messages2.removeIf(message1::equals);
         }
-        messages1.addAll(messages2);
-        for(WhatsAppMessage message : messages1) {
-            result.addMessage(message);
-        }
+        result.addMessages(messages1);
+        result.addMessages(messages2);
         result.close();
         return result;
     }
