@@ -20,7 +20,7 @@ public class Main {
     private static InputOutput io;
 
     public static void main(String[] args) {
-        ArrayList<File> fileList = new ArrayList<>(List.of(dataFolder.listFiles()));
+        ArrayList<File> fileList = new ArrayList<>(List.of(Objects.requireNonNull(dataFolder.listFiles())));
         fileList.removeIf(File::isDirectory);
         fileList.removeIf(file -> !file.getName().endsWith(".txt"));
         System.err.printf("Files found in %s:\n", fileList.get(0).getParentFile().getAbsolutePath());
@@ -49,7 +49,7 @@ public class Main {
         io = new InputOutput(chatFile);
         new WhatsAppMessageParser(chatFile, chat).parseFullFile();
         io.output("This chat's earliest message is from: " + chat.getRegularMessages().get(0).getDateTime().toString());
-        parseChat();
+        analyzeChat();
     }
 
     private static void parseFiles(File[] chatFiles) {
@@ -63,7 +63,6 @@ public class Main {
         }
         io = new InputOutput(dataFolder, sb.toString());
 
-
         WhatsAppChat chatToAdd;
         new WhatsAppMessageParser(chatFiles[0], chat).parseFullFile();
         for(File file : chatFiles) {
@@ -76,14 +75,12 @@ public class Main {
             }
         }
         io.writeToFile("chat", chat.toString());
-        parseChat();
+        analyzeChat();
     }
 
-    private static void parseChat() {
+    private static void analyzeChat() {
         timer.stopStart("Parsing");
-
         WordStats.countMessages(chat, io);
-
         timer.stopStart("Counting");
 
         wordOccurrencePerAuthor = WordStats.wordOccurrenceMapPerAuthor(chat);
@@ -92,8 +89,9 @@ public class Main {
         Stats.makeTopDoubleN(WordStats.informationPerAuthor(wordOccurrencePerAuthor).entrySet(), 0, "Alle woorden van", "kunnen worden verkort tot","bits", io);
 
         new WordStats(io, chat).allStats(wordOccurrencePerAuthor);
+        timer.stopStart("WordStats");
         new Charts(io, chat).allCharts();
-
+        timer.stopStart("Charting");
         HashMap<String, Integer> deletedMessagesPerAuthor = chat.getAuthorList().stream().collect(Collectors.toMap(author -> author, author -> 0, (a, b) -> b, HashMap::new));
         chat.getDeletedMessages().forEach(message -> deletedMessagesPerAuthor.replace(message.getAuthor(), deletedMessagesPerAuthor.get(message.getAuthor()) + 1));
 
