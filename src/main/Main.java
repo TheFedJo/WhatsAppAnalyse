@@ -20,17 +20,10 @@ public class Main {
     private static InputOutput io;
 
     public static void main(String[] args) {
-        ArrayList<File> fileList = new ArrayList<>(List.of(Objects.requireNonNull(dataFolder.listFiles())));
-        fileList.removeIf(File::isDirectory);
-        fileList.removeIf(file -> !file.getName().endsWith(".txt"));
-        System.err.printf("Files found in %s:\n", fileList.get(0).getParentFile().getAbsolutePath());
-        fileList.stream().map(File::getName).forEach(System.err::println);
         boolean parseAllChats = false;
         boolean parseSeveralChats = true;
         if (parseAllChats) {
-            for (File file : fileList) {
-                parseFile(file);
-            }
+            parseAllFiles();
         } else if(parseSeveralChats) {
             File[] fileArray = new File[2];
             fileArray[0] = new File(dataFolder, "Intel25-08-22.txt");
@@ -40,6 +33,17 @@ public class Main {
             parseFile(new File(dataFolder, "Omzicht28-10-22.txt"));
         }
         System.out.println("Now enter your query");
+    }
+
+    private static void parseAllFiles() {
+        ArrayList<File> fileList = new ArrayList<>(List.of(Objects.requireNonNull(Main.dataFolder.listFiles())));
+        fileList.removeIf(File::isDirectory);
+        fileList.removeIf(file -> !file.getName().endsWith(".txt"));
+        System.err.printf("Files found in %s:\n", fileList.get(0).getParentFile().getAbsolutePath());
+        fileList.stream().map(File::getName).forEach(System.err::println);
+        for (File file : fileList) {
+            parseFile(file);
+        }
     }
 
     private static void parseFile(File chatFile) {
