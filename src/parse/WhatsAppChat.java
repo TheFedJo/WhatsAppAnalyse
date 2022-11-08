@@ -154,7 +154,6 @@ public class WhatsAppChat {
         }
         for (WhatsAppMessage message : this.messages) {
             sb.append("\n").append(message);
-
         }
         return sb.toString();
     }
