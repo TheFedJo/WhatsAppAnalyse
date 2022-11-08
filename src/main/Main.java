@@ -26,17 +26,15 @@ public class Main {
         System.err.printf("Files found in %s:\n", fileList.get(0).getParentFile().getAbsolutePath());
         fileList.stream().map(File::getName).forEach(System.err::println);
         boolean parseAllChats = false;
-        boolean parseSeveralChats = false;
+        boolean parseSeveralChats = true;
         if (parseAllChats) {
             for (File file : fileList) {
                 parseFile(file);
             }
         } else if(parseSeveralChats) {
-            File[] fileArray = new File[4];
-            fileArray[0] = new File(dataFolder, "DGM30-03-22.txt");
-            fileArray[1] = new File(dataFolder, "DGM28-04-22.txt");
-            fileArray[2] = new File(dataFolder, "DGM03-06-22.txt");
-            fileArray[3] = new File(dataFolder, "DGM25-10-22.txt");
+            File[] fileArray = new File[2];
+            fileArray[0] = new File(dataFolder, "Intel25-08-22.txt");
+            fileArray[1] = new File(dataFolder, "Intel25-10-22.txt");
             parseFiles(fileArray);
         } else {
             parseFile(new File(dataFolder, "Omzicht28-10-22.txt"));
@@ -100,7 +98,7 @@ public class Main {
 
         io.output("\n\nVerwijderde berichten:");
         Stats.makeTopIntegerN(deletedMessagesPerAuthor.entrySet(), 0, "", "heeft", "berichten verwijderd.", io);
-        io.output("Admins hebben zoveel berichten verwijderd: " + chat.getAdminDeletedMessages().size());
+        io.output("\nAdmins hebben zoveel berichten verwijderd: " + chat.getAdminDeletedMessages().size());
 
         timer.stop("Calculating other stats");
     }

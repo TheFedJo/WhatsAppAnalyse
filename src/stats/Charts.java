@@ -4,13 +4,19 @@ import main.InputOutput;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import parse.WhatsAppChat;
 import parse.WhatsAppMessage;
+import util.AlternateEntryComparator;
+import util.EntryComparator;
+import util.SortMethods;
 
+import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -127,8 +133,9 @@ public class Charts {
 
     private void messagesPerDayChart() {
         HashMap<String, HashMap<Long, Integer>> authorDayMessageCountMap = new HashMap<>();
-        long latestDate = latestDate(messages);
-        long earliestDate = earliestDate(messages);
+        HashMap<String, ArrayList<Map.Entry<Long, Integer>>> authorArrayListMap = new HashMap<>();
+        long latestDate = chat.getLatestMessageDateTime().toLocalDate().toEpochDay();
+        long earliestDate = chat.getEarliestMessageDateTime().toLocalDate().toEpochDay();
         for (String author : chat.getAuthorList()) {
             authorDayMessageCountMap.put(author, new HashMap<>());
             Map<Long, Integer> currentMap = authorDayMessageCountMap.get(author);
@@ -141,15 +148,23 @@ public class Charts {
             HashMap<Long, Integer> thisAuthorMap = authorDayMessageCountMap.get(message.getAuthor());
             thisAuthorMap.replace(epochDay, thisAuthorMap.get(epochDay) + 1);
         }
+        for (Map.Entry<String, HashMap<Long, Integer>> entry : authorDayMessageCountMap.entrySet())  {
+            authorArrayListMap.put(entry.getKey(), SortMethods.mergeSort(new ArrayList<>(entry.getValue().entrySet()), new AlternateEntryComparator()));
+        }
         DefaultCategoryDataset data = new DefaultCategoryDataset();
-        for (Map.Entry<String, HashMap<Long, Integer>> authorEntry : authorDayMessageCountMap.entrySet()) {
-            for (Map.Entry<Long, Integer> dayEntry : authorEntry.getValue().entrySet()) {
+        for (Map.Entry<String, ArrayList<Map.Entry<Long, Integer>>> authorEntry : authorArrayListMap.entrySet()) {
+            for (Map.Entry<Long, Integer> dayEntry : authorEntry.getValue()) {
                 data.addValue(dayEntry.getValue(), authorEntry.getKey(), LocalDate.ofEpochDay(dayEntry.getKey()));
             }
         }
+
         JFreeChart lineChart =  ChartFactory.createLineChart("Berichtentrend", "dag", "berichten", data);
+
+        LineAndShapeRenderer renderer = (LineAndShapeRenderer) lineChart.getCategoryPlot().getRenderer();
+        renderer.setDefaultStroke(new BasicStroke(4f));
+        renderer.setAutoPopulateSeriesStroke(false);
         lineChart.getCategoryPlot().getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_90);
-        io.printToPNG(lineChart, 9600, 1080);
+        io.printToPNG(lineChart, 9720, 1080);
     }
 }
 
