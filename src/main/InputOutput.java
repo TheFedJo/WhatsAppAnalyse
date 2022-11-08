@@ -12,18 +12,6 @@ public class InputOutput {
     private final File outputDirectory;
     private FileWriter fileWriter;
 
-    public InputOutput(File inputFile) {
-        this.inputFileName = inputFile.getName();
-        String outputPath = inputFile.getParent() + File.separator + inputFile.getName().split("\\.")[0] + "__report";
-        deleteDirectory(new File(outputPath));
-        this.outputDirectory = new File(outputPath);
-        if(!this.outputDirectory.mkdir() && !this.outputDirectory.isDirectory()) {
-            System.out.println("File stuff not working");
-            System.exit(1);
-        }
-        setFileName("default");
-    }
-
     public InputOutput(File outputDirectory, String chatName) {
         this.inputFileName = chatName;
         String outputPath = outputDirectory + File.separator + chatName.split("\\.")[0] + "-report";

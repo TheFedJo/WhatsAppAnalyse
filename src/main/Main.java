@@ -26,18 +26,20 @@ public class Main {
         System.err.printf("Files found in %s:\n", fileList.get(0).getParentFile().getAbsolutePath());
         fileList.stream().map(File::getName).forEach(System.err::println);
         boolean parseAllChats = false;
-        boolean parseSeveralChats = true;
+        boolean parseSeveralChats = false;
         if (parseAllChats) {
             for (File file : fileList) {
                 parseFile(file);
             }
         } else if(parseSeveralChats) {
-            File[] fileArray = new File[2];
-            fileArray[0] = new File(dataFolder, "Intel25-08-22.txt");
-            fileArray[1] = new File(dataFolder, "Intel25-10-22.txt");
+            File[] fileArray = new File[4];
+            fileArray[0] = new File(dataFolder, "DGM30-03-22.txt");
+            fileArray[1] = new File(dataFolder, "DGM28-04-22.txt");
+            fileArray[2] = new File(dataFolder, "DGM03-06-22.txt");
+            fileArray[3] = new File(dataFolder, "DGM25-10-22.txt");
             parseFiles(fileArray);
         } else {
-            parseFile(new File(dataFolder, "chat.txt"));
+            parseFile(new File(dataFolder, "Omzicht28-10-22.txt"));
         }
         System.out.println("Now enter your query");
     }
@@ -46,9 +48,10 @@ public class Main {
         timer.start();
         chat = new WhatsAppChat(chatFile.getName());
         System.out.println("Using file " + chatFile.getName() + " with size: " + chatFile.length() + " bytes.");
-        io = new InputOutput(chatFile);
+        io = new InputOutput(dataFolder, chatFile.getName());
         new WhatsAppMessageParser(chatFile, chat).parseFullFile();
-        io.output("This chat's earliest message is from: " + chat.getRegularMessages().get(0).getDateTime().toString());
+        io.output("Het eerste bericht is gestuurd om: " + chat.getEarliestMessageDateTime());
+        io.output("Het laatste bericht is gestuurd om: " + chat.getLatestMessageDateTime());
         analyzeChat();
     }
 
@@ -85,7 +88,7 @@ public class Main {
 
         wordOccurrencePerAuthor = WordStats.wordOccurrenceMapPerAuthor(chat);
 
-        io.output("\nWeergave van het gezegde per persoon in aantal bits (werkt niet helaas)");
+        io.output("\nWeergave van het gezegde per persoon in aantal bits");
         Stats.makeTopDoubleN(WordStats.informationPerAuthor(wordOccurrencePerAuthor).entrySet(), 0, "Alle woorden van", "kunnen worden verkort tot","bits", io);
 
         new WordStats(io, chat).allStats(wordOccurrencePerAuthor);
