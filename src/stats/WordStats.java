@@ -23,6 +23,7 @@ public class WordStats {
     public void allStats(Map<String, Map<String, Integer>> authorWordMap) {
         generalWordTopTen(authorWordMap);
         wordCountPerAuthorAndFavoriteWords(authorWordMap);
+        countMessageRecent(whatsAppMessages, 6, io);
         countMessageRecent(whatsAppMessages, 30, io);
 
         countMessageRecent(whatsAppMessages, 90, io);
@@ -45,7 +46,7 @@ public class WordStats {
         }
         for (WhatsAppMessage whatsAppMessage : messages) {
             if (whatsAppMessage.getMessageType() == MessageType.STANDARD) {
-                messageCount.replace(whatsAppMessage.getAuthor(), messageCount.get(whatsAppMessage.getAuthor()) + 1);
+                messageCount.replace(whatsAppMessage.getAuthor().getName(), messageCount.get(whatsAppMessage.getAuthor().getName()) + 1);
             }
         }
         return messageCount;
@@ -75,17 +76,17 @@ public class WordStats {
 
     public static Map<String, Map<String, Integer>> wordOccurrenceMapPerAuthor(WhatsAppChat chat) {
         Map<String, Map<String, Integer>> finalResult = new HashMap<>();
-        for (String author : chat.getAuthorList()) {
+        for (String author : chat.getAuthorNameList()) {
             finalResult.put(author, new HashMap<>());
         }
         String lowerCaseWord;
         for (WhatsAppMessage message : chat.getRegularMessages()) {
             for (String word : stringToWordsArray(message.getMessage())) {
                 lowerCaseWord = word.toLowerCase(Locale.ROOT);
-                if (finalResult.get(message.getAuthor()).containsKey(lowerCaseWord)) {
-                    finalResult.get(message.getAuthor()).replace(lowerCaseWord, finalResult.get(message.getAuthor()).get(lowerCaseWord) + 1);
+                if (finalResult.get(message.getAuthor().getName()).containsKey(lowerCaseWord)) {
+                    finalResult.get(message.getAuthor().getName()).replace(lowerCaseWord, finalResult.get(message.getAuthor().getName()).get(lowerCaseWord) + 1);
                 } else {
-                    finalResult.get(message.getAuthor()).put(lowerCaseWord, 1);
+                    finalResult.get(message.getAuthor().getName()).put(lowerCaseWord, 1);
                 }
             }
         }
@@ -106,7 +107,7 @@ public class WordStats {
 
     public static void countMessages(WhatsAppChat chat, InputOutput io) {
         io.output("In totaal zijn er " + chat.getRegularMessages().size() + " berichten gestuurd. \nDit is de ranglijst per persoon:");
-        Map<String, Integer> messageCountPerAuthor =  calcMessageAmountPerAuthor(chat.getAuthorList(), chat.getRegularMessages());
+        Map<String, Integer> messageCountPerAuthor =  calcMessageAmountPerAuthor(chat.getAuthorNameList(), chat.getRegularMessages());
         Stats.makeSimpleTopN(messageCountPerAuthor.entrySet(), 0, io);
     }
 
@@ -115,7 +116,7 @@ public class WordStats {
         long earliestDay = Charts.latestDate(messages) - timespanBeforeLastMessage;
         messages.removeIf(message -> message.getEpochDate() < earliestDay);
         io.output("\n\nIn totaal zijn er in de laatste " + timespanBeforeLastMessage + " dagen zoveel berichten gestuurd: " + messages.size());
-        Stats.makeSimpleTopN(calcMessageAmountPerAuthor(chat.getAuthorList(), messages).entrySet(), 10, io);
+        Stats.makeSimpleTopN(calcMessageAmountPerAuthor(chat.getAuthorNameList(), messages).entrySet(), 10, io);
     }
 
     private void generalWordTopTen(Map<String, Map<String, Integer>> authorWordMap) {

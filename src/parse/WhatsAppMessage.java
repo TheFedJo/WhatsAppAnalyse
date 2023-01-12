@@ -4,16 +4,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 
 public class WhatsAppMessage {
-    private final String author;
+    private final Author author;
     private String message;
     private final MessageType messageType;
     private final LocalDate date;
     private final LocalTime time;
 
-    public WhatsAppMessage(LocalDateTime time, String author, MessageType messageType, String message) {
+    public WhatsAppMessage(LocalDateTime time, Author author, MessageType messageType, String message) {
         this.date = time.toLocalDate();
         this.time = time.toLocalTime();
         this.author = author;
@@ -32,7 +31,7 @@ public class WhatsAppMessage {
         return message;
     }
 
-    public String getAuthor() {
+    public Author getAuthor() {
         return author;
     }
 
@@ -67,7 +66,7 @@ public class WhatsAppMessage {
     public String toString() {
         if(messageType == MessageType.STANDARD) {
             return date.format(DateTimeFormatter.ofPattern("dd-MM-yy")) +
-                    " " + time.toString() + " - " + author + ": " + message;
+                    " " + time.toString() + " - " + author.getName() + ": " + message;
         } else {
             return date.format(DateTimeFormatter.ofPattern("dd-MM-yy")) +
                     " " + time.toString() + " - " + message;

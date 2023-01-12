@@ -21,7 +21,7 @@ public class Main {
 
     public static void main(String[] args) {
         boolean parseAllChats = false;
-        boolean parseSeveralChats = true;
+        boolean parseSeveralChats = false;
         if (parseAllChats) {
             parseAllFiles();
         } else if(parseSeveralChats) {
@@ -30,7 +30,7 @@ public class Main {
             fileArray[1] = new File(dataFolder, "Intel25-10-22.txt");
             parseFiles(fileArray);
         } else {
-            parseFile(new File(dataFolder, "Omzicht28-10-22.txt"));
+            parseFile(new File(dataFolder, "wzhi2.txt"));
         }
         System.out.println("Now enter your query");
     }
@@ -97,8 +97,8 @@ public class Main {
         timer.stopStart("WordStats");
         new Charts(io, chat).allCharts();
         timer.stopStart("Charting");
-        HashMap<String, Integer> deletedMessagesPerAuthor = chat.getAuthorList().stream().collect(Collectors.toMap(author -> author, author -> 0, (a, b) -> b, HashMap::new));
-        chat.getDeletedMessages().forEach(message -> deletedMessagesPerAuthor.replace(message.getAuthor(), deletedMessagesPerAuthor.get(message.getAuthor()) + 1));
+        HashMap<String, Integer> deletedMessagesPerAuthor = chat.getAuthorNameList().stream().collect(Collectors.toMap(author -> author, author -> 0, (a, b) -> b, HashMap::new));
+        chat.getDeletedMessages().forEach(message -> deletedMessagesPerAuthor.replace(message.getAuthor().getName(), deletedMessagesPerAuthor.get(message.getAuthor().getName()) + 1));
 
         io.output("\n\nVerwijderde berichten:");
         Stats.makeTopIntegerN(deletedMessagesPerAuthor.entrySet(), 0, "", "heeft", "berichten verwijderd.", io);

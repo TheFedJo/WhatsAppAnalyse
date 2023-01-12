@@ -10,13 +10,11 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import parse.WhatsAppChat;
 import parse.WhatsAppMessage;
 import util.AlternateEntryComparator;
-import util.EntryComparator;
 import util.SortMethods;
 
 import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -111,14 +109,14 @@ public class Charts {
 
     private void averageMessageUserHourLineChart() {
         HashMap<String, Map<Integer, Integer>> fullMap = new HashMap<>();
-        for (String author : chat.getAuthorList()) {
+        for (String author : chat.getAuthorNameList()) {
             fullMap.put(author, new HashMap<>());
             for (int hour = 0; hour < 24; hour++) {
                 fullMap.get(author).put(hour, 0);
             }
         }
         for (WhatsAppMessage message : messages) {
-            fullMap.get(message.getAuthor()).replace(message.getTime().getHour(), fullMap.get(message.getAuthor()).get(message.getTime().getHour()) + 1);
+            fullMap.get(message.getAuthor().getName()).replace(message.getTime().getHour(), fullMap.get(message.getAuthor().getName()).get(message.getTime().getHour()) + 1);
         }
         long timespanDays = messageHistoryTimespanDays(messages);
         DefaultCategoryDataset data = new DefaultCategoryDataset();
@@ -136,7 +134,7 @@ public class Charts {
         HashMap<String, ArrayList<Map.Entry<Long, Integer>>> authorArrayListMap = new HashMap<>();
         long latestDate = chat.getLatestMessageDateTime().toLocalDate().toEpochDay();
         long earliestDate = chat.getEarliestMessageDateTime().toLocalDate().toEpochDay();
-        for (String author : chat.getAuthorList()) {
+        for (String author : chat.getAuthorNameList()) {
             authorDayMessageCountMap.put(author, new HashMap<>());
             Map<Long, Integer> currentMap = authorDayMessageCountMap.get(author);
             for (long i = earliestDate; i <= latestDate; i++) {
@@ -145,7 +143,7 @@ public class Charts {
         }
         for (WhatsAppMessage message : messages) {
             long epochDay = message.getDate().toEpochDay();
-            HashMap<Long, Integer> thisAuthorMap = authorDayMessageCountMap.get(message.getAuthor());
+            HashMap<Long, Integer> thisAuthorMap = authorDayMessageCountMap.get(message.getAuthor().getName());
             thisAuthorMap.replace(epochDay, thisAuthorMap.get(epochDay) + 1);
         }
         for (Map.Entry<String, HashMap<Long, Integer>> entry : authorDayMessageCountMap.entrySet())  {

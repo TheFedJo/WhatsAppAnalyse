@@ -127,7 +127,7 @@ public class WhatsAppMessageParser {
 
     protected static WhatsAppMessage lineToWAMessage(String line) {
         String rest = line.split(" - ", 2)[1];
-        String author = rest.split(": ")[0];
+        Author author = new Author(rest.split(": ")[0]);
         String text = rest.split(": ", 2)[1];
         return new WhatsAppMessage(retrieveDateTime(line), author, MessageType.STANDARD, text);
     }
@@ -154,13 +154,13 @@ public class WhatsAppMessageParser {
                 Integer.parseInt(timeSplit[4]));
     }
 
-    public static String extractAuthorFromRest(String rest) throws ArrayIndexOutOfBoundsException {
+    public static Author extractAuthorFromRest(String rest) throws ArrayIndexOutOfBoundsException {
         String[] splitline = rest.split("\\s+");
-        return IntStream.iterate(1,
+        return new Author(IntStream.iterate(1,
                 i -> !Objects.equals(splitline[i], "heeft") && !Objects.equals(splitline[i], "hebt") &&
                      !Objects.equals(splitline[i], "neemt") && !Objects.equals(splitline[i], "bent")
                         && !Objects.equals(splitline[i], "is"),
-                i -> i + 1).mapToObj(i -> " " + splitline[i]).collect(Collectors.joining("", splitline[0], ""));
+                i -> i + 1).mapToObj(i -> " " + splitline[i]).collect(Collectors.joining("", splitline[0], "")));
     }
 
     /**

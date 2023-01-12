@@ -3,15 +3,18 @@ package parse;
 import util.MessageComparator;
 import util.SortMethods;
 
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 
 public class WhatsAppChat {
     private final ArrayList<WhatsAppMessage> messages;
     private ArrayList<WhatsAppMessage> deletedMessages;
     private ArrayList<WhatsAppMessage> adminDeletedMessages;
     private ArrayList<WhatsAppMessage> regularMessages;
-    private ArrayList<String> authorList;
+    private ArrayList<Author> authorList;
+    private ArrayList<String> authorNames;
     private boolean isOpen;
     private final String name;
 
@@ -40,6 +43,7 @@ public class WhatsAppChat {
             }
         }
     }
+
     public void sortMessages() {
         SortMethods.mergeSort(messages, new MessageComparator());
     }
@@ -52,6 +56,23 @@ public class WhatsAppChat {
         return new ArrayList<>(messages);
     }
 
+    public ArrayList<WhatsAppMessage> getMessagesOfType(MessageType type) {
+        ArrayList<WhatsAppMessage> messages = getMessages();
+        messages.removeIf(message -> message.getMessageType() != type);
+        return messages;
+    }
+
+    public ArrayList<WhatsAppMessage> getMessagesOfTypes(MessageType... types) {
+        ArrayList<WhatsAppMessage> messages = new ArrayList<>();
+        for (MessageType type : types) {
+            for (WhatsAppMessage message : getMessages()) {
+                if (message.getMessageType() == type){
+                    messages.add(message);
+                }
+            }
+        }
+        return messages;
+    }
     public ArrayList<WhatsAppMessage> getDeletedMessages() {
         if(deletedMessages == null) {
             parseDeletedMessages();
@@ -95,20 +116,37 @@ public class WhatsAppChat {
         return name;
     }
 
-    public ArrayList<String> getAuthorList() {
+    public ArrayList<Author> getAuthorList() {
         if (authorList == null) {
             createAuthorList();
         }
         return new ArrayList<>(authorList);
     }
+    public ArrayList<String> getAuthorNameList() {
+        if (authorNames == null) {
+            createAuthorNamesList();
+        }
+        return new ArrayList<>(authorNames);
+    }
 
     private void createAuthorList() {
         authorList = new ArrayList<>();
+        ArrayList<Author> authors = new ArrayList<>();
         for (WhatsAppMessage message : getRegularMessages()) {
-            if(!authorList.contains(message.getAuthor())) {
-                authorList.add(message.getAuthor());
+            if(!authors.contains(message.getAuthor())) {
+                authors.add(message.getAuthor());
             }
         }
+        authorList = authors;
+    }
+
+    private void createAuthorNamesList() {
+        authorNames = new ArrayList<>();
+        ArrayList<String> names = new ArrayList<>();
+        for (Author author : getAuthorList()) {
+            names.add(author.getName());
+        }
+        authorNames = names;
     }
 
     public LocalDateTime getEarliestMessageDateTime() {
@@ -149,12 +187,18 @@ public class WhatsAppChat {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getName()).append("\nAuthors:");
-        for (String author : this.getAuthorList()) {
-            sb.append("\n").append(author);
+        for (Author author : this.getAuthorList()) {
+            sb.append("\n").append(author.getName());
         }
         for (WhatsAppMessage message : this.messages) {
             sb.append("\n").append(message);
         }
         return sb.toString();
+    }
+
+    public ArrayList<WhatsAppMessage> getMessagesByAuthor(Author author) {
+        ArrayList<WhatsAppMessage> messages = getMessages();
+        messages.removeIf(message -> !message.getAuthor().getName().equals(author.getName()));
+        return messages;
     }
 }
