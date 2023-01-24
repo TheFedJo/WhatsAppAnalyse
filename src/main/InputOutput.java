@@ -21,7 +21,7 @@ public class InputOutput {
             System.out.println("File stuff not working");
             System.exit(1);
         }
-        setFileName("default");
+        setFileName("stats");
     }
 
     private void deleteDirectory(File directory) {
@@ -60,7 +60,7 @@ public class InputOutput {
         }
     }
 
-    public void output(String output) {
+    public synchronized void output(String output) {
         println(output);
         writeToFile(output);
     }

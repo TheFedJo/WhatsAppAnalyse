@@ -12,9 +12,9 @@ public class WhatsAppMessage {
     private final LocalDate date;
     private final LocalTime time;
 
-    public WhatsAppMessage(LocalDateTime time, Author author, MessageType messageType, String message) {
-        this.date = time.toLocalDate();
-        this.time = time.toLocalTime();
+    public WhatsAppMessage(LocalDateTime dateTime, Author author, MessageType messageType, String message) {
+        this.date = dateTime.toLocalDate();
+        this.time = dateTime.toLocalTime();
         this.author = author;
         this.messageType = messageType;
         this.message = message;
