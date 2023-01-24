@@ -18,3 +18,5 @@
 * Javadoc en/of comments
 * Berichten per tijdspanne (per auteur)
 * Grafieken? Iemand suggesties?
+* Machine Learning ideeën
+* Taalopties
