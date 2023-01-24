@@ -53,16 +53,20 @@ public class Charts {
         io.printToPNG(chart);
     }
 
+    private Map<Integer, Integer> initMessageHourMap() {
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < 24; i++) {
+            map.put(i, 0);
+        }
+        return map;
+    }
+
     private Map<Integer, Integer> messageMapPerHour(ArrayList<WhatsAppMessage> messages) {
-        Map<Integer, Integer> hourMessageCountMap = new HashMap<>();
+        Map<Integer, Integer> hourMessageCountMap = initMessageHourMap();
         int hour;
         for (WhatsAppMessage message : messages) {
             hour = message.getTime().getHour();
-            if (hourMessageCountMap.containsKey(hour)) {
-                hourMessageCountMap.replace(hour, hourMessageCountMap.get(hour) + 1);
-            } else {
-                hourMessageCountMap.put(hour, 1);
-            }
+            hourMessageCountMap.replace(hour, hourMessageCountMap.get(hour) + 1);
         }
         return hourMessageCountMap;
     }
